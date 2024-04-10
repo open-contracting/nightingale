@@ -4,3 +4,7 @@
 /dist
 /docs/_build
 /htmlcov
+/.venv/
+.DS_Store
+/csvs/
+/input/
