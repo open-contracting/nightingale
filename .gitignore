@@ -5,6 +5,13 @@
 /docs/_build
 /htmlcov
 /.venv/
+/.idea/
 .DS_Store
 /csvs/
 /input/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.sublime-workspace
+*.sublime-project
