@@ -1,9 +1,11 @@
+from datetime import datetime
 from pathlib import Path
 import simplejson as json
 
 
 def new_name(package):
-    return f'release-package-{package["publishedDate"]}.json'
+    date = package.get('publishedDate', datetime.now().isoformat() )
+    return f'release-package-{date}.json'
 
 
 class DataWriter:

@@ -12,11 +12,11 @@ class Output:
 
 
 @dataclass(frozen=True)
-class Datasources:
+class Datasource:
     # TODO: postgresql support?
     # XXX: maybe this should be an uri?
     connection: str
-    selector: str
+    #selector: str
 
 
 @dataclass(frozen=True)
@@ -28,14 +28,15 @@ class Publishing:
 
 @dataclass(frozen=True)
 class Mapping:
+    name: str
     file: Path
-    codelists: Optional[Path] = None
+    selector: str
 
 
 @dataclass(frozen=True)
 class Config:
-    datasources: Datasources
-    mapping: Mapping
+    datasource: Datasource
+    steps: list[Mapping]
     publishing: Publishing
     output: Output
 

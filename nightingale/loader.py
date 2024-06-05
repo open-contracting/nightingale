@@ -12,12 +12,11 @@ class DataLoader:
 
     def __init__(self, config):
         self.config = config
-        self.data = None
 
-    def load(self):
+    def load(self, selector):
         cursor = self.get_cursor()
-        cursor.execute(self.config.selector)
-        self.data = [dict(row) for row in cursor.fetchall()]
+        cursor.execute(selector)
+        return [dict(row) for row in cursor.fetchall()]
 
     def get_cursor(self):
         conn = self.get_connection()
@@ -28,9 +27,6 @@ class DataLoader:
         conn = sqlite3.connect(self.config.connection)
         conn.row_factory = sqlite3.Row
         return conn
-
-    def get_data(self):
-        return self.data
 
     def validate_data_elements(self, data_elements):
         """Match columns in the database and in data elements"""
@@ -66,5 +62,5 @@ class DataLoader:
 class PDLoader(DataLoader):
     """Load data from sql to a pandas dataframe"""
 
-    def load(self):
-        self.data = pd.read_sql(self.config.selector, self.get_connection())
+    def load(self, selector):
+        self.data = pd.read_sql(selector, self.get_connection())

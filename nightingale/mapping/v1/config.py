@@ -1,26 +1,6 @@
 import pandas as pd
 
 
-BUY_SPEED_REPLACE = [
-    "Bid Header Custom Columns",
-    "Bid Header Table",
-    "Bid Status Dates",
-    "PO Status Dates",
-    "Purchase Order Header Table",
-    "Req Header Custom Columns",
-    "Requisition Header Table",
-    "Requisition Status Dates",
-    "Vendor"
-]
-
-
-def buy_speed_hack(value):
-    for match in BUY_SPEED_REPLACE:
-        if match in value:
-            return value.replace(match, 'BuySpeed Project Projects')
-    return value
-
-
 class Mapping:
 
     def __init__(self, config):
@@ -40,7 +20,6 @@ class Mapping:
         ]).dropna(subset=['Mapping'])
         self.mapping['Mapping'] = self.mapping['Mapping'].apply(lambda x: x.replace('  ', ' '))
         # TODO: remove this hack as soon as template is fixed
-        self.mapping['Mapping'] = self.mapping['Mapping'].apply(buy_speed_hack)
         self.schema = self.read_sheet('OCDS Schema 1.1.5', skiprows=0)
         #self.load_extensions()
 

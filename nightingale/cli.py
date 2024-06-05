@@ -8,7 +8,6 @@ from .publisher import DataPublisher
 from .config import Config
 
 
-
 @click.command()
 @click.option(
     '--config',
@@ -17,27 +16,18 @@ from .config import Config
     type=click_pathlib.Path(exists=True),
     required=True,
 )
-def run(config_file):
+@click.option('--package', is_flag=True, default=False, help='Package data')
+def run(config_file, package):
     click.echo('Start transforming')
     config = Config.from_file(config_file)
-    mapping = Mapping(config.mapping)
-    mapper = OCDSDataMapper(mapping)
+    mapper = OCDSDataMapper(config)
     writer = DataWriter(config.output)
-    packer = DataPublisher(config.publishing)
+    ocds_data = mapper.map()
+    if package:
+        # XXX: this step should be optional as ocdskit can package data
+        packer = DataPublisher(config.publishing)
+        ocds_data = packer.package(ocds_data)
+        writer.write(ocds_data)
 
-    ocds_data = mapper.map(load_data(config, mapping))
-    package = packer.publish(ocds_data)
-    writer.write(package)
-
-
-def load_data(config, mapping):
-    # loader = PDLoader(config.datasources)
-    # loader.load()
-    # data = loader.get_data()
-    loader = DataLoader(config.datasources)
-    loader.load()
-    # TODO: validate in separate class
-    loader.validate_data_elements(mapping.data_elements)
-    loader.validate_selector(mapping.data_elements)
-    data = loader.get_data()
-    return data
+    else:
+        writer.write({"releases": ocds_data})

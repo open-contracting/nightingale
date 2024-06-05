@@ -12,7 +12,7 @@ class DataPublisher:
         prefix = self.config.ocid_prefix
         return f'{prefix}-{value}'
 
-    def publish(self, data: list[dict[str, Any]]):
+    def package(self, data: list[dict[str, Any]]):
         now = datetime.now().isoformat()
         for r in data:
             r['ocid'] = self.produce_ocid(r['ocid'])
