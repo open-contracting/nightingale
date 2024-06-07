@@ -10,17 +10,17 @@ class DataPublisher:
 
     def produce_ocid(self, value):
         prefix = self.config.ocid_prefix
-        return f'{prefix}-{value}'
+        return f"{prefix}-{value}"
 
     def package(self, data: list[dict[str, Any]]):
         now = datetime.now().isoformat()
         for r in data:
-            r['ocid'] = self.produce_ocid(r['ocid'])
+            r["ocid"] = self.produce_ocid(r["ocid"])
         # XXX: should it be now or other date?
         return {
-            'uri': f'https://todo.com/{now}',
-            'version': self.config.version,
-            'publisher': self.config.publisher,
-            'publishedDate': now,
-            'releases': data
+            "uri": f"https://todo.com/{now}",
+            "version": self.config.version,
+            "publisher": self.config.publisher,
+            "publishedDate": now,
+            "releases": data,
         }

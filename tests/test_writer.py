@@ -1,8 +1,11 @@
 import unittest
-import simplejson as json
 from pathlib import Path
-from nightingale.writer import DataWriter
+
+import simplejson as json
+
 from nightingale.config import Output
+from nightingale.writer import DataWriter
+
 
 class TestDataWriter(unittest.TestCase):
     def setUp(self):
@@ -31,9 +34,10 @@ class TestDataWriter(unittest.TestCase):
         self.writer.write(self.package)
         output_path = self.writer.get_output_path(self.package)
         self.assertTrue(output_path.exists())
-        with open(output_path, 'r') as f:
+        with open(output_path, "r") as f:
             data = json.load(f)
         self.assertEqual(data, self.package)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

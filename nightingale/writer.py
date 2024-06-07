@@ -1,11 +1,12 @@
 from datetime import datetime
 from pathlib import Path
+
 import simplejson as json
 
 
 def new_name(package):
-    date = package.get('publishedDate', datetime.now().isoformat() )
-    return f'release-package-{date}.json'
+    date = package.get("publishedDate", datetime.now().isoformat())
+    return f"release-package-{date}.json"
 
 
 class DataWriter:
@@ -25,5 +26,5 @@ class DataWriter:
 
     def write(self, package):
         path = self.get_output_path(package)
-        with path.open('w') as f:
+        with path.open("w") as f:
             json.dump(package, f, indent=2)

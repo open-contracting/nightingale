@@ -1,1 +1,1 @@
-from .config import Mapping # noqa
+from .config import Mapping  # noqa
