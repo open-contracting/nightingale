@@ -16,7 +16,7 @@ class Datasource:
     # TODO: postgresql support?
     # XXX: maybe this should be an uri?
     connection: str
-    #selector: str
+    # selector: str
 
 
 @dataclass(frozen=True)
@@ -31,6 +31,7 @@ class Mapping:
     name: str
     file: Path
     selector: str
+    force_publish: Optional[bool] = False
 
 
 @dataclass(frozen=True)
@@ -42,6 +43,6 @@ class Config:
 
     @classmethod
     def from_file(cls, config_file: Path) -> Self:
-        with open(config_file, 'rb') as f:
+        with open(config_file, "rb") as f:
             data = tomllib.load(f)
         return TypeAdapter(Config).validate_python(data)
