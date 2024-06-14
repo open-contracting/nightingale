@@ -1,6 +1,9 @@
+from pathlib import Path
+
 import pytest
 
-from nightingale.unflatten import transform_data
+from nightingale.config import Config, Datasource, Mapping, Output, Publishing
+from nightingale.mapper import OCDSDataMapper
 
 
 class MockMappingConfig:
@@ -11,6 +14,16 @@ class MockMappingConfig:
         if flat_col in self.config:
             return [self.config[flat_col]]
         return []
+
+
+@pytest.fixture
+def mock_config():
+    datasource = Datasource(connection="sqlite:///:memory:")
+    mapping = Mapping(name="step1", file=Path("/path/to/file1"), selector="selector1", ocid_prefix="prefix")
+    publishing = Publishing(version="1.0", publisher="publisher")
+    output = Output(directory=Path("/path/to/output"))
+
+    return Config(datasource=datasource, mapping=mapping, publishing=publishing, output=output)
 
 
 @pytest.mark.parametrize(
@@ -57,7 +70,7 @@ class MockMappingConfig:
                             {"id": "value5", "array_field2": [{"id": "value6"}]},
                         ],
                     },
-                }
+                },
             },
         ),
         (
@@ -244,12 +257,13 @@ class MockMappingConfig:
         ),
     ],
 )
-def test_transform_data(input_data, mapping_config, flattened_schema, result, expected_output):
-    result = transform_data(input_data, mapping_config, flattened_schema, result)
+def test_transform_data(input_data, mapping_config, flattened_schema, result, expected_output, mock_config):
+    mapper = OCDSDataMapper(mock_config)
+    result = mapper.transform_row(input_data, mapping_config, flattened_schema, result)
     assert result == expected_output
 
 
-def test_transform_data_with_shared_result():
+def test_transform_data_with_shared_result(mock_config):
     input_data1 = {"col1": "value1"}
     input_data2 = {"col2": "value2"}
 
@@ -257,13 +271,60 @@ def test_transform_data_with_shared_result():
 
     flattened_schema = {"/shared/object/field1": {"type": "string"}, "/shared/object/field2": {"type": "string"}}
 
+    mapper = OCDSDataMapper(mock_config)
+
     result = {}
-    result = transform_data(input_data1, mapping_config, flattened_schema, result)
-    result = transform_data(input_data2, mapping_config, flattened_schema, result)
+    result = mapper.transform_row(input_data1, mapping_config, flattened_schema, result)
+    result = mapper.transform_row(input_data2, mapping_config, flattened_schema, result)
 
     expected_output = {"shared": {"object": {"field1": "value1", "field2": "value2"}}}
 
     assert result == expected_output
+
+
+@pytest.mark.parametrize(
+    "input_data, expected_ocid",
+    [
+        ("12345", "prefix-12345"),
+        ("abcde", "prefix-abcde"),
+        ("67890", "prefix-67890"),
+    ],
+)
+def test_produce_ocid(mock_config, input_data, expected_ocid):
+    mapper = OCDSDataMapper(mock_config)
+    assert mapper.produce_ocid(input_data) == expected_ocid
+
+
+def test_date_release(mock_config):
+    mapper = OCDSDataMapper(mock_config)
+    curr_row = {}
+    mapper.date_release(curr_row)
+    assert "date" in curr_row
+
+
+def test_tag_initiation_type(mock_config):
+    mapper = OCDSDataMapper(mock_config)
+    curr_row = {"tender": {}}
+    mapper.tag_initiation_type(curr_row)
+    assert curr_row["initiationType"] == "tender"
+
+
+def test_tag_ocid(mock_config):
+    mapper = OCDSDataMapper(mock_config)
+    curr_row = {"ocid": "12345"}
+    mapper.tag_ocid(curr_row)
+    assert curr_row["ocid"] == "prefix-12345"
+
+
+def test_map(mock_config, mocker):
+    loader = mocker.Mock()
+    loader.load.return_value = [{"ocid": "1", "field": "value"}]
+    mapper = OCDSDataMapper(mock_config)
+
+    result = mapper.map(loader)
+
+    assert result == []
+    loader.load.assert_called_once_with("selector1")
 
 
 if __name__ == "__main__":
