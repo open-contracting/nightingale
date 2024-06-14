@@ -1,4 +1,5 @@
 from pathlib import Path
+from unittest import mock
 
 import pytest
 
@@ -14,6 +15,9 @@ class MockMappingConfig:
         if flat_col in self.config:
             return [self.config[flat_col]]
         return []
+
+    def get_ocid_mapping(self):
+        return "/ocid"
 
 
 @pytest.fixture
@@ -311,17 +315,20 @@ def test_tag_initiation_type(mock_config):
 
 def test_tag_ocid(mock_config):
     mapper = OCDSDataMapper(mock_config)
-    curr_row = {"ocid": "12345"}
-    mapper.tag_ocid(curr_row)
+    curr_row = {}
+    mapper.tag_ocid(curr_row, "12345")
     assert curr_row["ocid"] == "prefix-12345"
 
 
 def test_map(mock_config, mocker):
     loader = mocker.Mock()
     loader.load.return_value = [{"ocid": "1", "field": "value"}]
-    mapper = OCDSDataMapper(mock_config)
 
-    result = mapper.map(loader)
+    # Mock the Mapping class to avoid reading from an actual file
+    with mock.patch("nightingale.mapper.Mapping") as MockMapping:
+        MockMapping.return_value = MockMappingConfig({})
+        mapper = OCDSDataMapper(mock_config)
+        result = mapper.map(loader)
 
     assert result == []
     loader.load.assert_called_once_with("selector1")
