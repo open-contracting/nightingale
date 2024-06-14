@@ -24,7 +24,7 @@ class MockMappingConfig:
 def mock_config():
     datasource = Datasource(connection="sqlite:///:memory:")
     mapping = Mapping(name="step1", file=Path("/path/to/file1"), selector="selector1", ocid_prefix="prefix")
-    publishing = Publishing(version="1.0", publisher="publisher")
+    publishing = Publishing(version="1.0", publisher="publisher", base_uri="http://example.com")
     output = Output(directory=Path("/path/to/output"))
 
     return Config(datasource=datasource, mapping=mapping, publishing=publishing, output=output)

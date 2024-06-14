@@ -1,35 +1,39 @@
+import sqlite3
 import unittest
-from unittest.mock import MagicMock, patch
 
-from nightingale.config import Datasources
+from nightingale.config import Datasource
 from nightingale.loader import DataLoader
 
 
 class TestDataLoader(unittest.TestCase):
     def setUp(self):
-        self.config = Datasources(connection="test.db", selector="SELECT * FROM test_table")
-        self.loader = DataLoader(self.config)
+        # Using an in-memory SQLite database for testing
+        self.config = Datasource(connection=":memory:")
+        self.connection = sqlite3.connect(self.config.connection)
+        self.connection.row_factory = sqlite3.Row
+        self.cursor = self.connection.cursor()
 
-    @patch("sqlite3.connect")
-    def test_get_connection(self, mock_connect):
-        self.loader.get_connection()
-        mock_connect.assert_called_once_with(self.config.connection)
+        # Set up the in-memory database and table for testing
+        self.cursor.execute("CREATE TABLE test_table (column1 TEXT)")
+        self.cursor.execute("INSERT INTO test_table (column1) VALUES ('value1')")
+        self.connection.commit()
 
-    @patch("sqlite3.connect")
-    def test_get_cursor(self, mock_connect):
-        mock_cursor = MagicMock()
-        mock_connect.return_value.cursor.return_value = mock_cursor
-        cursor = self.loader.get_cursor()
-        self.assertEqual(cursor, mock_cursor)
+        # Inject the in-memory connection into DataLoader
+        self.loader = DataLoader(self.config, connection=self.connection)
 
-    @patch.object(DataLoader, "get_cursor")
-    def test_load(self, mock_get_cursor):
-        mock_cursor = MagicMock()
-        mock_get_cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = [{"column1": "value1"}]
-        self.loader.load()
-        mock_cursor.execute.assert_called_once_with(self.config.selector)
-        self.assertEqual(self.loader.data, [{"column1": "value1"}])
+    def tearDown(self):
+        # Close the connection after each test
+        self.connection.close()
+
+    def test_get_connection(self):
+        loader = DataLoader(self.config)
+        connection = loader.get_connection()
+        self.assertIsNotNone(connection)
+        self.assertEqual(connection.execute("PRAGMA database_list").fetchall()[0]["file"], "")
+
+    def test_load(self):
+        data = self.loader.load("SELECT * FROM test_table")
+        self.assertEqual(data, [{"column1": "value1"}])
 
 
 if __name__ == "__main__":

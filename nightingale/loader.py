@@ -1,8 +1,6 @@
 import logging
 import sqlite3
 
-import pandas as pd
-
 logger = logging.getLogger(__name__)
 
 # TODO: postgresql support
@@ -11,8 +9,9 @@ logger = logging.getLogger(__name__)
 class DataLoader:
     """Load data from a database using a SQL query"""
 
-    def __init__(self, config):
+    def __init__(self, config, connection=None):
         self.config = config
+        self._connection = connection
 
     def load(self, selector):
         cursor = self.get_cursor()
@@ -26,8 +25,12 @@ class DataLoader:
         return cursor
 
     def get_connection(self):
+        if self._connection:
+            return self._connection
         conn = sqlite3.connect(self.config.connection)
         conn.row_factory = sqlite3.Row
+        # for tests
+        self._connection = conn
         logger.info(f"Connected to {self.config.connection}")
         return conn
 
@@ -60,10 +63,3 @@ class DataLoader:
         for column in columns:
             if column not in labels_for_mapping:
                 logger.warning(f"Column {column} is not mapped")
-
-
-class PDLoader(DataLoader):
-    """Load data from sql to a pandas dataframe"""
-
-    def load(self, selector):
-        self.data = pd.read_sql(selector, self.get_connection())

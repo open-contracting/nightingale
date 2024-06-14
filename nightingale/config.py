@@ -22,6 +22,7 @@ class Datasource:
 class Publishing:
     version: str
     publisher: str
+    base_uri: str
 
 
 @dataclass(frozen=True)

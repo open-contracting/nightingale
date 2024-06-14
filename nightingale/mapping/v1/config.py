@@ -39,7 +39,8 @@ class Mapping:
     def normmalize_mapping_column(self, mappings):
         """Normalize the mapping column by setting all space separators to one space"""
         for mapping in mappings:
-            mapping["mapping"] = mapping["mapping"].replace("  ", " ")
+            if "  " in mapping["mapping"]:
+                mapping["mapping"] = " ".join((p.strip() for p in mapping["mapping"].split("  ")))
         return mappings
 
     def read_mapping_sheet(self, sheet):
@@ -173,12 +174,6 @@ class Mapping:
 
     def is_array_path(self, path):
         return self.schema.get(path, {}).get("type") == "array"
-
-    def is_in_array(self, keys):
-        for path in ("/" + "/".join(keys[: i + 1]) for i in range(len(keys))):
-            if self.is_array_path(path):
-                return path
-        return False
 
     def get_arrays(self):
         result = []

@@ -6,13 +6,9 @@ from nightingale.publisher import DataPublisher
 
 class TestDataPublisher(unittest.TestCase):
     def setUp(self):
-        self.config = Publishing(**{"ocid_prefix": "ocid_prefix", "version": "1.0", "publisher": "test_publisher"})
+        self.config = Publishing(**{"version": "1.0", "publisher": "test_publisher", "base_uri": "http://example.com"})
         self.publisher = DataPublisher(self.config)
-        self.data = [{"ocid": "1234"}]
-
-    def test_produce_ocid(self):
-        ocid = self.publisher.produce_ocid("1234")
-        self.assertEqual(ocid, "ocid_prefix-1234")
+        self.data = [{"ocid": "ocid_prefix-1234"}]
 
     def test_publish(self):
         package = self.publisher.package(self.data)
