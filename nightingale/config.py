@@ -16,20 +16,18 @@ class Datasource:
     # TODO: postgresql support?
     # XXX: maybe this should be an uri?
     connection: str
-    # selector: str
 
 
 @dataclass(frozen=True)
 class Publishing:
-    ocid_prefix: str
     version: str
     publisher: str
 
 
 @dataclass(frozen=True)
 class Mapping:
-    name: str
     file: Path
+    ocid_prefix: str
     selector: str
     force_publish: Optional[bool] = False
 
@@ -37,7 +35,7 @@ class Mapping:
 @dataclass(frozen=True)
 class Config:
     datasource: Datasource
-    steps: list[Mapping]
+    mapping: Mapping
     publishing: Publishing
     output: Output
 
