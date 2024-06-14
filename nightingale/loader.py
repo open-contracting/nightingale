@@ -17,6 +17,7 @@ class DataLoader:
     def load(self, selector):
         cursor = self.get_cursor()
         cursor.execute(selector)
+        logger.info(f"Loaded data from {self.config.connection}")
         return [dict(row) for row in cursor.fetchall()]
 
     def get_cursor(self):
@@ -27,6 +28,7 @@ class DataLoader:
     def get_connection(self):
         conn = sqlite3.connect(self.config.connection)
         conn.row_factory = sqlite3.Row
+        logger.info(f"Connected to {self.config.connection}")
         return conn
 
     def validate_data_elements(self, data_elements):
