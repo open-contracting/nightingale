@@ -122,6 +122,11 @@ class Mapping:
             _, path, title, description, type, range, values, links, _, _ = row
             if not path:
                 continue
+            path = "/" + path
+
+            if path in schema and type == "object":
+                # this is a nested object inside arrray we are interested in parrent array path
+                continue
             schema[path] = {
                 "title": title,
                 "description": description,

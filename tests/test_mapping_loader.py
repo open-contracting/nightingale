@@ -153,7 +153,7 @@ def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
     schema = mapping.read_schema_sheet()
 
     expected_schema = {
-        "array_path": {
+        "/array_path": {
             "title": "title1",
             "description": "description1",
             "type": "array",
@@ -161,7 +161,7 @@ def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
             "values": "values1",
             "links": "links1",
         },
-        "path1": {
+        "/path1": {
             "title": "title2",
             "description": "description2",
             "type": "string",
@@ -463,8 +463,8 @@ def test_is_array_path(mock_load_workbook, mock_workbook, mock_config):
     mapping = Mapping(mock_config)
     mapping.schema = mapping.read_schema_sheet()
 
-    assert mapping.is_array_path("array_path") is True
-    assert mapping.is_array_path("path2") is False
+    assert mapping.is_array_path("/array_path") is True
+    assert mapping.is_array_path("/path2") is False
 
 
 if __name__ == "__main__":

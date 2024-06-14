@@ -133,6 +133,8 @@ class OCDSDataMapper:
                         nested_dict[-1][last_key] = []
                     nested_dict[-1][last_key].append(value)
                 else:
+                    if not nested_dict:
+                        nested_dict.append({})
                     nested_dict[-1][last_key] = value
             else:
                 if last_key in nested_dict:
