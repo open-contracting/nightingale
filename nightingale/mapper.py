@@ -11,14 +11,43 @@ logger = logging.getLogger(__name__)
 
 
 class OCDSDataMapper:
+    """
+    Maps data from a source to the OCDS format.
+
+    :param config: Configuration object containing settings for the mapper.
+    :type config: Config
+    """
+
     def __init__(self, config: Config):
+        """
+        Initialize the OCDSDataMapper.
+
+        :param config: Configuration object containing settings for the mapper.
+        :type config: Config
+        """
         self.config = config
 
-    def produce_ocid(self, value):
+    def produce_ocid(self, value: str) -> str:
+        """
+        Produce an OCID based on the given value.
+
+        :param value: The value to use for generating the OCID.
+        :type value: str
+        :return: The produced OCID.
+        :rtype: str
+        """
         prefix = self.config.mapping.ocid_prefix
         return f"{prefix}-{value}"
 
-    def map(self, loader):
+    def map(self, loader: Any) -> list[dict[str, Any]]:
+        """
+        Map data from the loader to the OCDS format.
+
+        :param loader: Data loader object.
+        :type loader: Any
+        :return: List of mapped release dictionaries.
+        :rtype: list[dict[str, Any]]
+        """
         config = self.config.mapping
         mapping = Mapping(config)
         data = loader.load(config.selector)
@@ -26,6 +55,16 @@ class OCDSDataMapper:
         return self.transform_data(data, mapping)
 
     def transform_data(self, data: list[dict[Any, Any]], mapping: Mapping) -> list[dict[str, Any]]:
+        """
+        Transform the input data to the OCDS format.
+
+        :param data: List of input data dictionaries.
+        :type data: list[dict[Any, Any]]
+        :param mapping: Mapping configuration object.
+        :type mapping: Mapping
+        :return: List of transformed release dictionaries.
+        :rtype: list[dict[str, Any]]
+        """
         curr_ocid = ""
         curr_release = {}
         mapped = []
@@ -53,7 +92,28 @@ class OCDSDataMapper:
                 continue
         return mapped
 
-    def transform_row(self, input_data, mapping_config, flattened_schema, result=None):
+    def transform_row(
+        self,
+        input_data: dict[Any, Any],
+        mapping_config: Mapping,
+        flattened_schema: dict[str, Any],
+        result: dict = None,
+    ) -> dict:
+        """
+        Transform a single row of input data to the OCDS format.
+
+        :param input_data: Dictionary of input data.
+        :type input_data: dict[Any, Any]
+        :param mapping_config: Mapping configuration object.
+        :type mapping_config: Mapping
+        :param flattened_schema: Flattened schema dictionary.
+        :type flattened_schema: dict[str, Any]
+        :param result: Existing result dictionary to update.
+        :type result: dict, optional
+        :return: Transformed row dictionary.
+        :rtype: dict
+        """
+
         def set_nested_value(nested_dict, keys, value, schema, add_new=False):
             for i, key in enumerate(keys[:-1]):
                 if isinstance(nested_dict, list):
@@ -126,16 +186,42 @@ class OCDSDataMapper:
                     set_nested_value(result, keys, value, flattened_schema)
         return result
 
-    def make_release_id(self, curr_row):
+    def make_release_id(self, curr_row: dict) -> None:
+        """
+        Generate and set a unique ID for the release based on its content.
+
+        :param curr_row: The current release row dictionary.
+        :type curr_row: dict
+        """
         id_ = dict_hash.sha256(curr_row)
         curr_row["id"] = id_
 
-    def date_release(self, curr_row):
+    def date_release(self, curr_row: dict) -> None:
+        """
+        Set the release date to the current date and time.
+
+        :param curr_row: The current release row dictionary.
+        :type curr_row: dict
+        """
         curr_row["date"] = datetime.now().isoformat()
 
-    def tag_initiation_type(self, curr_row):
+    def tag_initiation_type(self, curr_row: dict) -> None:
+        """
+        Tag the initiation type of the release as 'tender' if applicable.
+
+        :param curr_row: The current release row dictionary.
+        :type curr_row: dict
+        """
         if "tender" in curr_row and "initiationType" not in curr_row:
             curr_row["initiationType"] = "tender"
 
-    def tag_ocid(self, curr_row, curr_ocid):
+    def tag_ocid(self, curr_row: dict, curr_ocid: str) -> None:
+        """
+        Set the OCID for the release.
+
+        :param curr_row: The current release row dictionary.
+        :type curr_row: dict
+        :param curr_ocid: The OCID value to set.
+        :type curr_ocid: str
+        """
         curr_row["ocid"] = self.produce_ocid(curr_ocid)
