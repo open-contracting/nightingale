@@ -12,6 +12,7 @@ Welcome to nightingale's documentation!
 
    installation
    tutorial
+   examples
    data_flow
    api
    cli
