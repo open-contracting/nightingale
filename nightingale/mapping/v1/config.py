@@ -64,7 +64,7 @@ class Mapping:
                     if not mapping:
                         continue
                     row = {
-                        "path": path,
+                        "path": path if path.startswith("/") else "/" + path,
                         "title": title,
                         "description": description,
                         "mapping": mapping,
@@ -93,7 +93,7 @@ class Mapping:
 
     def get_element_by_mapping(self, for_mapping):
         element = for_mapping.split("(")[1].replace(")", "")
-        return self.data_elements.get(element)
+        return self.data_elements.get(element, {})
 
     def read_data_elements_sheet(self, sheet):
         elements = {}
@@ -160,6 +160,8 @@ class Mapping:
 
     def get_mapping_for(self, path):
         result = []
+        if not path.startswith("/"):
+            path = "/" + path
         for mapping in self.mappings:
             if mapping["path"] == path:
                 result.append(mapping)
@@ -193,3 +195,12 @@ class Mapping:
     def get_ocid_mapping(self):
         ocid_mapping = self.get_mapping_for("ocid")[0]
         return ocid_mapping["mapping"]
+
+    def get_containing_array_path(self, path):
+        return get_longest_array_path(self.get_arrays(), path)
+
+
+def get_longest_array_path(arrays, path):  # extract for testing
+    for array in reversed(sorted(arrays, key=len)):
+        if path.startswith(array):
+            return array

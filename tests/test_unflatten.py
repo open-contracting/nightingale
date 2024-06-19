@@ -5,11 +5,13 @@ import pytest
 
 from nightingale.config import Config, Datasource, Mapping, Output, Publishing
 from nightingale.mapper import OCDSDataMapper
+from nightingale.mapping.v1.config import get_longest_array_path
 
 
 class MockMappingConfig:
-    def __init__(self, config):
+    def __init__(self, config, array_paths=None):
         self.config = config
+        self.array_paths = array_paths if array_paths is not None else []
 
     def get_paths_for_mapping(self, flat_col, force_publish=False):
         if flat_col in self.config:
@@ -18,6 +20,9 @@ class MockMappingConfig:
 
     def get_ocid_mapping(self):
         return "/ocid"
+
+    def get_containing_array_path(self, path):
+        return get_longest_array_path(self.array_paths, path)
 
 
 @pytest.fixture
@@ -52,7 +57,8 @@ def mock_config():
                     "flat_col4": "/object/field2/array_field/array_field2/id",
                     "flat_col5": "/object/field2/array_field/id",
                     "flat_col6": "/object/field2/array_field/array_field2/id",
-                }
+                },
+                array_paths=["/object/field2/array_field", "/object/field2/array_field/array_field2"],
             ),
             {
                 "/object/field1": {"type": "string"},
@@ -85,7 +91,8 @@ def mock_config():
                     "flat_col2": "/object1/field2/id",
                     "flat_col3": "/object1/field2/id",
                     "flat_col_s": "/object1/field3",
-                }
+                },
+                array_paths=["/object1/field2"],
             ),
             {
                 "/object1/field1": {"type": "string"},
@@ -98,7 +105,7 @@ def mock_config():
         ),
         (
             {"flat_col1": "x", "flat_col2": "y"},
-            MockMappingConfig({"flat_col1": "/obj/attr", "flat_col2": "/obj/arr/id"}),
+            MockMappingConfig({"flat_col1": "/obj/attr", "flat_col2": "/obj/arr/id"}, array_paths=["/obj/arr"]),
             {"/obj/attr": {"type": "string"}, "/obj/arr": {"type": "array"}, "/obj/arr/id": {"type": "string"}},
             None,
             {"obj": {"attr": "x", "arr": [{"id": "y"}]}},
@@ -106,7 +113,12 @@ def mock_config():
         (
             {"flat_col1": "m", "flat_col2": "n", "flat_col3": "o"},
             MockMappingConfig(
-                {"flat_col1": "/level1/level2/field", "flat_col2": "/level1/array/id", "flat_col3": "/level1/array/id"}
+                {
+                    "flat_col1": "/level1/level2/field",
+                    "flat_col2": "/level1/array/id",
+                    "flat_col3": "/level1/array/id",
+                },
+                array_paths=["/level1/array"],
             ),
             {
                 "/level1/level2/field": {"type": "string"},
@@ -118,7 +130,9 @@ def mock_config():
         ),
         (
             {"col1": "a", "col2": "b"},
-            MockMappingConfig({"col1": "/obj1/obj2/attr", "col2": "/obj1/obj2/arr/id"}),
+            MockMappingConfig(
+                {"col1": "/obj1/obj2/attr", "col2": "/obj1/obj2/arr/id"}, array_paths=["/obj1/obj2/arr"]
+            ),
             {
                 "/obj1/obj2/attr": {"type": "string"},
                 "/obj1/obj2/arr": {"type": "array"},
@@ -130,7 +144,8 @@ def mock_config():
         (
             {"flat_col1": "value1", "flat_col2": "value2", "flat_col3": "value3"},
             MockMappingConfig(
-                {"flat_col1": "/obj/field1", "flat_col2": "/obj/field2/id", "flat_col3": "/obj/field2/id"}
+                {"flat_col1": "/obj/field1", "flat_col2": "/obj/field2/id", "flat_col3": "/obj/field2/id"},
+                array_paths=["/obj/field2"],
             ),
             {
                 "/obj/field1": {"type": "string"},
@@ -143,7 +158,8 @@ def mock_config():
         (
             {"flat_col1": "x", "flat_col2": "y", "flat_col3": "z"},
             MockMappingConfig(
-                {"flat_col1": "/obj1/field1", "flat_col2": "/obj1/array/id", "flat_col3": "/obj1/array/field"}
+                {"flat_col1": "/obj1/field1", "flat_col2": "/obj1/array/id", "flat_col3": "/obj1/array/field"},
+                array_paths=["/obj1/array"],
             ),
             {
                 "/obj1/field1": {"type": "string"},
@@ -162,7 +178,8 @@ def mock_config():
                     "col2": "/data/array/id",
                     "col3": "/data/array/id",
                     "col4": "/data/array/field",
-                }
+                },
+                array_paths=["/data/array"],
             ),
             {
                 "/data/field": {"type": "string"},
@@ -175,7 +192,9 @@ def mock_config():
         ),
         (
             {"a": "foo", "b": "bar", "c": "baz"},
-            MockMappingConfig({"a": "/root/field1", "b": "/root/field2", "c": "/root/field3"}),
+            MockMappingConfig(
+                {"a": "/root/field1", "b": "/root/field2", "c": "/root/field3"},
+            ),
             {
                 "/root/field1": {"type": "string"},
                 "/root/field2": {"type": "string"},
@@ -187,7 +206,8 @@ def mock_config():
         (
             {"a": "1", "b": "2", "c": "3", "d": "4"},
             MockMappingConfig(
-                {"a": "/lvl1/field", "b": "/lvl1/array/id", "c": "/lvl1/array/field", "d": "/lvl1/array/id"}
+                {"a": "/lvl1/field", "b": "/lvl1/array/id", "c": "/lvl1/array/field", "d": "/lvl1/array/id"},
+                array_paths=["/lvl1/array"],
             ),
             {
                 "/lvl1/field": {"type": "string"},
@@ -200,14 +220,17 @@ def mock_config():
         ),
         (
             {"x": "a", "y": "b"},
-            MockMappingConfig({"x": "/path/attr", "y": "/path/array/id"}),
+            MockMappingConfig({"x": "/path/attr", "y": "/path/array/id"}, array_paths=["/path/array"]),
             {"/path/attr": {"type": "string"}, "/path/array": {"type": "array"}, "/path/array/id": {"type": "string"}},
             None,
             {"path": {"attr": "a", "array": [{"id": "b"}]}},
         ),
         (
             {"f1": "val1", "f2": "val2", "f3": "val3"},
-            MockMappingConfig({"f1": "/obj1/obj2/attr", "f2": "/obj1/obj2/arr/id", "f3": "/obj1/obj2/arr/id"}),
+            MockMappingConfig(
+                {"f1": "/obj1/obj2/attr", "f2": "/obj1/obj2/arr/id", "f3": "/obj1/obj2/arr/id"},
+                array_paths=["/obj1/obj2/arr"],
+            ),
             {
                 "/obj1/obj2/attr": {"type": "string"},
                 "/obj1/obj2/arr": {"type": "array"},
@@ -218,7 +241,9 @@ def mock_config():
         ),
         (
             {"col1": "one", "col2": "two"},
-            MockMappingConfig({"col1": "/root/level1/field1", "col2": "/root/level1/array/id"}),
+            MockMappingConfig(
+                {"col1": "/root/level1/field1", "col2": "/root/level1/array/id"}, array_paths=["/root/level1/array"]
+            ),
             {
                 "/root/level1/field1": {"type": "string"},
                 "/root/level1/array": {"type": "array"},
@@ -230,7 +255,8 @@ def mock_config():
         (
             {"col1": "one", "col2": "two", "col3": "three"},
             MockMappingConfig(
-                {"col1": "/root/level1/field1", "col2": "/root/level1/array/id", "col3": "/root/level1/array/id"}
+                {"col1": "/root/level1/field1", "col2": "/root/level1/array/id", "col3": "/root/level1/array/id"},
+                array_paths=["/root/level1/array"],
             ),
             {
                 "/root/level1/field1": {"type": "string"},
@@ -248,7 +274,8 @@ def mock_config():
                     "col2": "/root/array1/id",
                     "col3": "/root/array1/field2",
                     "col4": "/root/array1/id",
-                }
+                },
+                array_paths=["/root/array1"],
             ),
             {
                 "/root/field1": {"type": "string"},
@@ -264,6 +291,10 @@ def mock_config():
 def test_transform_data(input_data, mapping_config, flattened_schema, result, expected_output, mock_config):
     mapper = OCDSDataMapper(mock_config)
     result = mapper.transform_row(input_data, mapping_config, flattened_schema, result)
+    if result != expected_output:
+        import pdb
+
+        pdb.set_trace()
     assert result == expected_output
 
 

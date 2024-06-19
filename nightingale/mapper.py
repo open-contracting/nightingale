@@ -121,9 +121,8 @@ class OCDSDataMapper:
                         nested_dict.append({})
                     nested_dict = nested_dict[-1]
                 if key not in nested_dict:
-                    nested_dict[key] = (
-                        [] if schema.get("/" + "/".join(keys[: i + 1]), {}).get("type") == "array" else {}
-                    )
+                    subpath = "/" + "/".join(keys[: i + 1])
+                    nested_dict[key] = [] if schema.get(subpath, {}).get("type") == "array" else {}
                 nested_dict = nested_dict[key]
 
             last_key = keys[-1]
@@ -154,6 +153,11 @@ class OCDSDataMapper:
             result = {}
         array_counters = {}
 
+        def is_new_array(array_counters, child_path, array_key, array_value):
+            if array_key == "id" and "/" + array_key == child_path and array_counters[array_path] != array_value:
+                return True
+            return False
+
         for flat_col, value in input_data.items():
             if not value:
                 continue
@@ -162,28 +166,34 @@ class OCDSDataMapper:
                 continue
             for path in paths:
                 keys = path.strip("/").split("/")
-                if any(is_array_path("/" + "/".join(keys[: i + 1])) for i in range(len(keys))):
-                    array_path = "/" + "/".join(keys[:-1])
-                    array_id_key = keys[-1]
-                    array_id_value = value
+                if array_path := mapping_config.get_containing_array_path(path):
+                    child_path = path[len(array_path) :]
+                    array_key = keys[-1]
+                    array_value = value
                     if array_path in array_counters:
-                        if array_id_key == "id":
-                            if array_counters[array_path] != array_id_value:
-                                array_counters[array_path] = array_id_value
-                                set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=True)
+                        if add_new := is_new_array(array_counters, child_path, array_key, array_value):
+                            array_counters[array_path] = array_value
+                            set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=add_new)
                     else:
-                        array_counters[array_path] = array_id_value
+                        if array_key == "id":
+                            array_counters[array_path] = array_value
                         set_nested_value(result, keys[:-1], [{}], flattened_schema)
 
                     current = result
-                    for key in keys[:-1]:
+                    for i, key in enumerate(keys[:-1]):
                         if isinstance(current, list):
                             current = current[-1]
+                        if key not in current:
+                            key_path = "/" + "/".join(keys[: i + 1])
+                            current[key] = [] if flattened_schema.get(key_path, {}).get("type") == "array" else {}
+
                         current = current[key]
                     if isinstance(current, list):
-                        current[-1][array_id_key] = value
+                        if not current:
+                            current.append({})
+                        current[-1][array_key] = value
                     else:
-                        current[array_id_key] = value
+                        current[array_key] = value
                 else:
                     set_nested_value(result, keys, value, flattened_schema)
         return result

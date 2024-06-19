@@ -210,7 +210,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
 
     expected_mappings = [
         {
-            "path": "path",
+            "path": "/path",
             "title": "title",
             "description": "description",
             "mapping": "mapping",
@@ -220,7 +220,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path2",
+            "path": "/path2",
             "title": "title2",
             "description": "description2",
             "mapping": "mapping2",
@@ -230,7 +230,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path",
+            "path": "/path",
             "title": "title",
             "description": "description",
             "mapping": "mapping",
@@ -240,7 +240,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path2",
+            "path": "/path2",
             "title": "title2",
             "description": "description2",
             "mapping": "mapping2",
@@ -250,7 +250,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path",
+            "path": "/path",
             "title": "title",
             "description": "description",
             "mapping": "mapping",
@@ -260,7 +260,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path2",
+            "path": "/path2",
             "title": "title2",
             "description": "description2",
             "mapping": "mapping2",
@@ -270,7 +270,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path",
+            "path": "/path",
             "title": "title",
             "description": "description",
             "mapping": "mapping",
@@ -280,7 +280,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path2",
+            "path": "/path2",
             "title": "title2",
             "description": "description2",
             "mapping": "mapping2",
@@ -290,7 +290,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path",
+            "path": "/path",
             "title": "title",
             "description": "description",
             "mapping": "mapping",
@@ -300,7 +300,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path2",
+            "path": "/path2",
             "title": "title2",
             "description": "description2",
             "mapping": "mapping2",
@@ -310,7 +310,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path",
+            "path": "/path",
             "title": "title",
             "description": "description",
             "mapping": "mapping",
@@ -320,7 +320,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
-            "path": "path2",
+            "path": "/path2",
             "title": "title2",
             "description": "description2",
             "mapping": "mapping2",
