@@ -85,6 +85,7 @@ class OCDSDataMapper:
                 self.tag_initiation_type(curr_release)
                 self.date_release(curr_release)
                 self.tag_ocid(curr_release, curr_ocid)
+                self.tag_tags(curr_release)
                 self.make_release_id(curr_release)
                 logger.info(f"Release mapped: {curr_release['ocid']}")
                 mapped.append(curr_release)
@@ -131,6 +132,7 @@ class OCDSDataMapper:
                     if last_key not in nested_dict[-1]:
                         nested_dict[-1][last_key] = []
                     nested_dict[-1][last_key].append(value)
+
                 else:
                     if not nested_dict:
                         nested_dict.append({})
@@ -237,3 +239,13 @@ class OCDSDataMapper:
         :type curr_ocid: str
         """
         curr_row["ocid"] = self.produce_ocid(curr_ocid)
+
+    def tag_tags(self, curr_row) -> None:
+        if "tag" not in curr_row:
+            curr_row["tag"] = []
+        if "tender" in curr_row:
+            curr_row["tag"].append("tender")
+        if "award" in curr_row:
+            curr_row["tag"].append("award")
+        if "contract" in curr_row:
+            curr_row["tag"].append("contract")
