@@ -13,7 +13,7 @@ class TestDataPublisher(unittest.TestCase):
     def test_publish(self):
         package = self.publisher.package(self.data)
         self.assertEqual(package["version"], self.config.version)
-        self.assertEqual(package["publisher"], self.config.publisher)
+        self.assertEqual(package["publisher"], {"name": self.config.publisher})
         self.assertEqual(package["releases"][0]["ocid"], "ocid_prefix-1234")
 
 
