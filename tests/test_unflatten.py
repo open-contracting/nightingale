@@ -365,5 +365,56 @@ def test_map(mock_config, mocker):
     loader.load.assert_called_once_with("selector1")
 
 
+@pytest.mark.parametrize(
+    "input_data, output_data",
+    [
+        (
+            {
+                "id": "1",
+                "tender": {
+                    "items": [
+                        {"id": "item1", "description": "Item 1"},
+                        {"description": "Item without ID"},
+                    ],
+                    "documents": [
+                        {"id": "doc1", "title": "Document 1"},
+                        {"title": "Document without ID"},
+                    ],
+                },
+            },
+            {
+                "id": "1",
+                "tender": {
+                    "items": [
+                        {"id": "item1", "description": "Item 1"},
+                    ],
+                    "documents": [
+                        {"id": "doc1", "title": "Document 1"},
+                    ],
+                },
+            },
+        ),
+        (
+            {
+                "id": "2",
+                "tender": {
+                    "items": [
+                        {"description": "Item without ID"},
+                    ],
+                    "documents": [],
+                },
+            },
+            {
+                "id": "2",
+            },
+        ),
+    ],
+)
+def test_remove_empty_id_arrays(input_data, output_data, mock_config):
+    mapper = OCDSDataMapper(mock_config)
+    data = mapper.remove_empty_id_arrays(input_data)
+    assert data == output_data
+
+
 if __name__ == "__main__":
     pytest.main()

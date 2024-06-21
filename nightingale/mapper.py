@@ -1,11 +1,11 @@
 import logging
-from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 
 import dict_hash
 
 from .config import Config
 from .mapping.v1 import Mapping
+from .utils import get_iso_now, remove_dicts_without_id
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +88,7 @@ class OCDSDataMapper:
                 self.tag_tags(curr_release)
                 self.make_release_id(curr_release)
                 logger.info(f"Release mapped: {curr_release['ocid']}")
+                curr_release = self.remove_empty_id_arrays(curr_release)
                 mapped.append(curr_release)
                 curr_release = {}
                 continue
@@ -217,7 +218,7 @@ class OCDSDataMapper:
         :param curr_row: The current release row dictionary.
         :type curr_row: dict
         """
-        curr_row["date"] = datetime.now().isoformat()
+        curr_row["date"] = get_iso_now()
 
     def tag_initiation_type(self, curr_row: dict) -> None:
         """
@@ -249,3 +250,13 @@ class OCDSDataMapper:
             curr_row["tag"].append("award")
         if "contract" in curr_row:
             curr_row["tag"].append("contract")
+
+    def remove_empty_id_arrays(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Recursively remove arrays that do not contain an 'id' field.
+
+        :param data: The data dictionary to process.
+        :type data: dict[str, Any]
+        """
+
+        return remove_dicts_without_id(data)
