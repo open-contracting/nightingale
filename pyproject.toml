@@ -51,3 +51,7 @@ disable = [
 
 [tool.setuptools]
 packages = ["nightingale"]
+
+
+[tool.coverage.run]
+omit = ["tests/*"]
