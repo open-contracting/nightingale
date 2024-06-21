@@ -1,7 +1,6 @@
-from datetime import datetime
 from typing import Any
 
-from .utils import produce_package_name
+from .utils import get_iso_now, produce_package_name
 
 
 class DataPublisher:
@@ -41,11 +40,11 @@ class DataPublisher:
         :return: A dictionary representing the release package.
         :rtype: dict[str, Any]
         """
-        now = datetime.now().isoformat()
+        now = get_iso_now()
         return {
             "uri": self.produce_uri(now),
             "version": self.config.version,
-            "publisher": self.config.publisher,
+            "publisher": {"name": self.config.publisher},
             "publishedDate": now,
             "releases": data,
         }
