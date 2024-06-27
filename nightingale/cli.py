@@ -60,7 +60,7 @@ def run(config_file, package, loglevel):
         logger.info("Data transformation completed successfully")
 
     except Exception as e:
-        logger.error("Error during transformation: %s", e)
+        raise click.ClickException(f"Error during transformation: {e}")
 
 
 if __name__ == "__main__":
