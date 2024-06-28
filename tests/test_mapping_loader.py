@@ -3,8 +3,8 @@ from unittest.mock import MagicMock, patch
 import openpyxl
 import pytest
 
-from nightingale.mapping.v1 import Mapping
-from nightingale.mapping.v1.config import get_longest_array_path
+from nightingale.mapping_template.v09 import MappingTemplate
+from nightingale.utils import get_longest_array_path
 
 
 def test_sheets():
@@ -136,7 +136,7 @@ def mock_config():
 @patch("openpyxl.load_workbook")
 def test_mapping_init(mock_load_workbook, mock_workbook, mock_config):
     mock_load_workbook.return_value = mock_workbook
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
     assert mapping.wb == mock_workbook
 
 
@@ -150,7 +150,7 @@ def test_normmalize_mapping_column(mock_config):
         {"mapping": "field1 field2"},
         {"mapping": "field3 field4"},
     ]
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
     result = mapping.normmalize_mapping_column(mappings)
     assert result == expected_result
 
@@ -160,7 +160,7 @@ def test_read_data_elements_sheet(mock_load_workbook, mock_workbook, mock_config
     mock_workbook.__getitem__ = lambda self, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
 
     expected_data_elements = {
         "element1": {
@@ -193,7 +193,7 @@ def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
     mock_workbook.__getitem__ = lambda self, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
     schema = mapping.get_schema()
 
     expected_schema = {
@@ -232,7 +232,7 @@ def test_enforce_mapping_structure(mock_load_workbook, mock_workbook, mock_confi
         {"path": "general/item6", "mapping": "map6"},
     ]
 
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
     result = mapping.enforce_mapping_structure(mappings)
 
     expected_result = [
@@ -252,7 +252,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
     mock_workbook.__getitem__ = lambda self, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
 
     expected_mappings = [
         {
@@ -491,7 +491,7 @@ def test_get_element_by_mapping(mock_load_workbook, mock_workbook, mock_config):
     mock_workbook.__getitem__.side_effect = lambda name: mock_sheet
     mock_load_workbook.return_value = mock_workbook
 
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
     element = mapping.get_element_by_mapping("mapping1 (element1)")
 
     expected_element = {
@@ -565,7 +565,7 @@ def test_get_paths_for_mapping(mock_load_workbook, mock_workbook, mock_config):
         },
     ]
 
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
     mapping.mappings = mock_mappings
 
     paths = mapping.get_paths_for_mapping("mapping1 (element1)")
@@ -580,7 +580,7 @@ def test_is_array_path(mock_load_workbook, mock_workbook, mock_config):
     mock_workbook.__getitem__ = lambda self, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
-    mapping = Mapping(mock_config)
+    mapping = MappingTemplate(mock_config)
     mapping.schema = mapping.read_schema_sheet()
     assert mapping.is_array_path("/array_path") is True
     assert mapping.is_array_path("/path2") is False

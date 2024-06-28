@@ -48,7 +48,7 @@ def run(config_file, package, validate_mapping, loglevel):
         config = Config.from_file(config_file)
         mapper = OCDSDataMapper(config)
         writer = DataWriter(config.output)
-        logger.info("Mapping data...")
+        logger.info("MappingTemplate data...")
         ocds_data = mapper.map(DataLoader(config.datasource), validate_mapping=validate_mapping)
 
         if package:

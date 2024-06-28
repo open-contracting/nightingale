@@ -67,3 +67,9 @@ def is_new_array(array_counters, child_path, array_key, array_value, array_path)
     if array_key == "id" and "/" + array_key == child_path and array_counters[array_path] != array_value:
         return True
     return False
+
+
+def get_longest_array_path(arrays, path):  # extract for testing
+    for array in reversed(sorted(arrays, key=len)):
+        if path.startswith(array):
+            return array

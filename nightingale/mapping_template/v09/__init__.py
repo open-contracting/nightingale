@@ -2,6 +2,9 @@ import logging
 
 import openpyxl
 
+from nightingale.mapping_template.validator import MappingTemplateValidator  # noqa
+from nightingale.utils import get_longest_array_path
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,7 +22,7 @@ DATA_SHEET = "2. Data Elements"
 SCHEMA_SHEET = "OCDS Schema"
 
 
-class Mapping:
+class MappingTemplate:
     def __init__(self, config):
         self.config = config
         self.wb = openpyxl.load_workbook(self.config.file, data_only=True)
@@ -197,9 +200,3 @@ class Mapping:
 
     def get_containing_array_path(self, path):
         return get_longest_array_path(self.get_arrays(), path)
-
-
-def get_longest_array_path(arrays, path):  # extract for testing
-    for array in reversed(sorted(arrays, key=len)):
-        if path.startswith(array):
-            return array

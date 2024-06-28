@@ -6,7 +6,7 @@ import pytest
 
 from nightingale.config import Config, Datasource, Mapping, Output, Publishing
 from nightingale.mapper import OCDSDataMapper
-from nightingale.mapping.v1.config import get_longest_array_path
+from nightingale.utils import get_longest_array_path
 
 
 class MockMappingConfig:
@@ -354,8 +354,8 @@ def test_map(mock_config, mocker):
     loader = mocker.Mock()
     loader.load.return_value = [{"ocid": "1", "field": "value"}]
 
-    # Mock the Mapping class to avoid reading from an actual file
-    with mock.patch("nightingale.mapper.Mapping") as MockMapping:
+    # Mock the MappingTemplate class to avoid reading from an actual file
+    with mock.patch("nightingale.mapper.MappingTemplate") as MockMapping:
         MockMapping.return_value = MockMappingConfig({})
         mapper = OCDSDataMapper(mock_config)
         result = mapper.map(loader)
@@ -423,7 +423,7 @@ def test_map_with_validation(mock_config):
         mock_validator_instance = MockValidator.return_value
         mock_validator_instance.validate_data_elements = mock.MagicMock()
         mock_validator_instance.validate_selector = mock.MagicMock()
-        with mock.patch("nightingale.mapper.Mapping") as mock_mapping_template:
+        with mock.patch("nightingale.mapper.MappingTemplate") as mock_mapping_template:
             mapper = OCDSDataMapper(mock_config)
             mapper.map(loader, validate_mapping=True)
             MockValidator.assert_called_with(loader, mock_mapping_template())
@@ -472,7 +472,7 @@ def test_finish_release(mock_get_iso_now, mock_config):
 
 
 @mock.patch("nightingale.mapper.get_iso_now")
-@mock.patch("nightingale.mapper.Mapping")
+@mock.patch("nightingale.mapper.MappingTemplate")
 def test_finish_release_with_tags(mock_mapping, mock_get_iso_now, mock_config):
     mock_get_iso_now.return_value = "2022-01-01T00:00:00Z"
     mock_mapping.get_ocid_mapping.return_value = "ocid"

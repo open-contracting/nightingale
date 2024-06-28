@@ -4,7 +4,7 @@ from typing import Any
 import dict_hash
 
 from .config import Config
-from .mapping.v1 import Mapping, MappingTemplateValidator
+from .mapping_template.v09 import MappingTemplate, MappingTemplateValidator
 from .utils import get_iso_now, is_new_array, remove_dicts_without_id
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class OCDSDataMapper:
         :rtype: list[dict[str, Any]]
         """
         config = self.config.mapping
-        mapping = Mapping(config)
+        mapping = MappingTemplate(config)
         data = loader.load(config.selector)
         if validate_mapping:
             validator = MappingTemplateValidator(loader, mapping)
@@ -58,14 +58,14 @@ class OCDSDataMapper:
         logger.info("Start mapping data")
         return self.transform_data(data, mapping)
 
-    def transform_data(self, data: list[dict[Any, Any]], mapping: Mapping) -> list[dict[str, Any]]:
+    def transform_data(self, data: list[dict[Any, Any]], mapping: MappingTemplate) -> list[dict[str, Any]]:
         """
         Transform the input data to the OCDS format.
 
         :param data: List of input data dictionaries.
         :type data: list[dict[Any, Any]]
         :param mapping: Mapping configuration object.
-        :type mapping: Mapping
+        :type mapping: MappingTemplate
         :return: List of transformed release dictionaries.
         :rtype: list[dict[str, Any]]
         """
@@ -103,7 +103,7 @@ class OCDSDataMapper:
     def transform_row(
         self,
         input_data: dict[Any, Any],
-        mapping_config: Mapping,
+        mapping_config: MappingTemplate,
         flattened_schema: dict[str, Any],
         result: dict = None,
     ) -> dict:
@@ -113,7 +113,7 @@ class OCDSDataMapper:
         :param input_data: Dictionary of input data.
         :type input_data: dict[Any, Any]
         :param mapping_config: Mapping configuration object.
-        :type mapping_config: Mapping
+        :type mapping_config: MappingTemplate
         :param flattened_schema: Flattened schema dictionary.
         :type flattened_schema: dict[str, Any]
         :param result: Existing result dictionary to update.

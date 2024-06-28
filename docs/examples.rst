@@ -36,13 +36,13 @@ Example 1: Basic Transformation
        [output]
        directory = 'output'
 
-2. **Sample Mapping File (`mapping.xlsx`):**
+2. **Sample MappingTemplate File (`mapping.xlsx`):**
 
    **General Sheet:**
 
    .. code-block:: text
 
-       id  | Title          | Description    | Path                        | Status   | Mapping                             | Comment
+       id  | Title          | Description    | Path                        | Status   | MappingTemplate                             | Comment
        ----|----------------|----------------|-----------------------------|----------|------------------------------------ | -------
        1   | OCID           | unique ID      | ocid                        | Required | example_table (id)                 | -
        2   | Party Identifier  | Identifier  | parties/[0]/identifier/id   | Required | party_table (identifier)           | -
@@ -53,7 +53,7 @@ Example 1: Basic Transformation
 
    .. code-block:: text
 
-       id  | Title          | Description     | Path                       | Status   | Mapping                             | Comment
+       id  | Title          | Description     | Path                       | Status   | MappingTemplate                             | Comment
        ----|----------------|-----------------|----------------------------|----------|------------------------------------ | -------
        1   | Tender Title   | Name of tender  | tender/title               | Optional | example_table (name)               | -
        2   | Value          | Tender value    | tender/value/amount        | Optional | example_table (value)              | -
@@ -101,7 +101,7 @@ Example 2: Transformation with Packaging
        [output]
        directory = 'output'
 
-2. **Sample Mapping File (`mapping.xlsx`):**
+2. **Sample MappingTemplate File (`mapping.xlsx`):**
 
    Use the same `mapping.xlsx` as in Example 1.
 
@@ -154,13 +154,13 @@ You may need to manipulate data within the SQL query itself before it is fed int
        [output]
        directory = 'output'
 
-2. **Sample Mapping File (`mapping.xlsx`):**
+2. **Sample MappingTemplate File (`mapping.xlsx`):**
 
    **General Sheet:**
 
    .. code-block:: text
 
-       id  | Title          | Description    | Path                        | Status   | Mapping                             | Comment
+       id  | Title          | Description    | Path                        | Status   | MappingTemplate                             | Comment
        ----|----------------|----------------|-----------------------------|----------|------------------------------------ | -------
        1   | OCID           | unique ID      | ocid                        | Required | example_table (id)                 | -
        2   | Party Identifier  | Identifier  | parties/[0]/identifier/id   | Required | party_table (identifier)           | -
@@ -171,7 +171,7 @@ You may need to manipulate data within the SQL query itself before it is fed int
 
    .. code-block:: text
 
-       id  | Title          | Description     | Path                       | Status   | Mapping                             | Comment
+       id  | Title          | Description     | Path                       | Status   | MappingTemplate                             | Comment
        ----|----------------|-----------------|----------------------------|----------|------------------------------------ | -------
        1   | Tender Title   | Tender title    | tender/title               | Optional | example_table (name)               | -
        2   | Value          | Tender value    | tender/value/amount        | Optional | example_table (value)              | -
@@ -272,13 +272,13 @@ If the required data spans across multiple tables, you can use SQL JOINs to comb
        [output]
        directory = 'output'
 
-3. **Sample Mapping File (`mapping.xlsx`):**
+3. **Sample MappingTemplate File (`mapping.xlsx`):**
 
    **General Sheet:**
 
    .. code-block:: text
 
-       id  | Title          | Description    | Path                        | Status   | Mapping                             | Comment
+       id  | Title          | Description    | Path                        | Status   | MappingTemplate                             | Comment
        ----|----------------|----------------|-----------------------------|----------|------------------------------------ | -------
        1   | OCID           | unique ID      | ocid                        | Required | example_table (id)                 | -
        2   | Party Identifier  | Identifier  | parties/[0]/identifier/id   | Required | party_table (identifier)           | -
@@ -289,7 +289,7 @@ If the required data spans across multiple tables, you can use SQL JOINs to comb
 
    .. code-block:: text
 
-       id  | Title          | Description  | Path                       | Status   | Mapping                             | Comment
+       id  | Title          | Description  | Path                       | Status   | MappingTemplate                             | Comment
        ----|----------------|--------------|----------------------------|----------|------------------------------------ | -------
        1   | Tender Title   | Tender title | tender/title               | Optional | example_table (name)               | -
        2   | Value          | Tender value | tender/value/amount        | Optional | example_table (value)              | -
@@ -298,7 +298,7 @@ If the required data spans across multiple tables, you can use SQL JOINs to comb
 
    .. code-block:: text
 
-       id  | Title          | Description                    | Path                           | Status   | Mapping                            | Comment
+       id  | Title          | Description                    | Path                           | Status   | MappingTemplate                            | Comment
        ----|----------------|--------------------------------|-------------------------------|----------|----------------------------------- | -------
        1   | Description    | Description from another table | contracts/[0]/description     | Optional  | another_table (description)       | -
 

@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock, patch
 
-from nightingale.mapping.v1.validator import MappingTemplateValidator
+from nightingale.mapping_template.validator import MappingTemplateValidator
 
 
 class TestMappingTemplateValidator(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestMappingTemplateValidator(unittest.TestCase):
         # Create instance of the class
         self.validator = MappingTemplateValidator(self.loader, self.mapping_template)
 
-    @patch("nightingale.mapping.v1.validator.logger")
+    @patch("nightingale.mapping_template.validator.logger")
     def test_validate_data_elements_all_columns_described(self, mock_logger):
         # Mock the cursor and database table structure
         cursor = Mock()
@@ -62,7 +62,7 @@ class TestMappingTemplateValidator(unittest.TestCase):
         # Ensure no warnings were logged
         mock_logger.warning.assert_not_called()
 
-    @patch("nightingale.mapping.v1.validator.logger")
+    @patch("nightingale.mapping_template.validator.logger")
     def test_validate_data_elements_missing_columns(self, mock_logger):
         # Mock the cursor and database table structure
         cursor = Mock()
@@ -107,7 +107,7 @@ class TestMappingTemplateValidator(unittest.TestCase):
         # Check if a warning was logged for the missing column
         mock_logger.warning.assert_called_with("Column table1/missing is not described in data elements")
 
-    @patch("nightingale.mapping.v1.validator.logger")
+    @patch("nightingale.mapping_template.validator.logger")
     def test_validate_selector_all_columns_mapped(self, mock_logger):
         # Mock the mapping template data elements
         self.mapping_template.get_data_elements.return_value = {
@@ -142,7 +142,7 @@ class TestMappingTemplateValidator(unittest.TestCase):
         # Ensure no warnings were logged
         mock_logger.warning.assert_not_called()
 
-    @patch("nightingale.mapping.v1.validator.logger")
+    @patch("nightingale.mapping_template.validator.logger")
     def test_validate_selector_missing_columns(self, mock_logger):
         # Mock the mapping template data elements
         self.mapping_template.get_data_elements.return_value = {
