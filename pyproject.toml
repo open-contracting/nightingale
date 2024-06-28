@@ -55,3 +55,6 @@ packages = ["nightingale"]
 
 [tool.coverage.run]
 omit = ["tests/*"]
+
+[tool.ruff]
+ignore = ['E501']
