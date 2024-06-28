@@ -1,6 +1,7 @@
 from pathlib import Path
 from unittest import mock
 
+import dict_hash
 import pytest
 
 from nightingale.config import Config, Datasource, Mapping, Output, Publishing
@@ -47,6 +48,8 @@ def mock_config():
                 "flat_col5": "value5",
                 "flat_col6": "value6",
                 "flat_col_s": "value7",
+                "flat_col_not_mapped": "value8",
+                "flat_col_no_value": "",
             },
             MockMappingConfig(
                 {
@@ -291,10 +294,6 @@ def mock_config():
 def test_transform_data(input_data, mapping_config, flattened_schema, result, expected_output, mock_config):
     mapper = OCDSDataMapper(mock_config)
     result = mapper.transform_row(input_data, mapping_config, flattened_schema, result)
-    if result != expected_output:
-        import pdb
-
-        pdb.set_trace()
     assert result == expected_output
 
 
@@ -414,6 +413,129 @@ def test_remove_empty_id_arrays(input_data, output_data, mock_config):
     mapper = OCDSDataMapper(mock_config)
     data = mapper.remove_empty_id_arrays(input_data)
     assert data == output_data
+
+
+def test_map_with_validation(mock_config):
+    loader = mock.MagicMock()
+    loader.load.return_value = [{"ocid": "1", "field": "value"}]
+
+    with mock.patch("nightingale.mapper.MappingTemplateValidator") as MockValidator:
+        mock_validator_instance = MockValidator.return_value
+        mock_validator_instance.validate_data_elements = mock.MagicMock()
+        mock_validator_instance.validate_selector = mock.MagicMock()
+        with mock.patch("nightingale.mapper.Mapping") as mock_mapping_template:
+            mapper = OCDSDataMapper(mock_config)
+            mapper.map(loader, validate_mapping=True)
+            MockValidator.assert_called_with(loader, mock_mapping_template())
+            mock_validator_instance.validate_data_elements.assert_called_once()
+            mock_validator_instance.validate_selector.assert_called_once_with(loader.load.return_value[0])
+
+
+def generate_hash(data):
+    return dict_hash.sha256(data)
+
+
+@mock.patch("nightingale.mapper.get_iso_now")
+def test_finish_release(mock_get_iso_now, mock_config):
+    mock_get_iso_now.return_value = "2022-01-01T00:00:00Z"
+
+    mapper = OCDSDataMapper(mock_config)
+
+    curr_release = {
+        "field": "value1",
+        "tender": {},
+    }
+    curr_ocid = "1"
+    mapped = []
+
+    mapper.finish_release(curr_ocid, curr_release, mapped)
+
+    expected_release = {
+        "field": "value1",
+        "initiationType": "tender",
+        "date": "2022-01-01T00:00:00Z",
+        "ocid": "prefix-1",
+        "tag": ["tender"],
+        "id": generate_hash(
+            {
+                "field": "value1",
+                "initiationType": "tender",
+                "date": "2022-01-01T00:00:00Z",
+                "ocid": "prefix-1",
+                "tag": ["tender"],
+            }
+        ),
+    }
+
+    assert len(mapped) == 1
+    assert mapped[0] == expected_release
+
+
+@mock.patch("nightingale.mapper.get_iso_now")
+@mock.patch("nightingale.mapper.Mapping")
+def test_finish_release_with_tags(mock_mapping, mock_get_iso_now, mock_config):
+    mock_get_iso_now.return_value = "2022-01-01T00:00:00Z"
+    mock_mapping.get_ocid_mapping.return_value = "ocid"
+    mapper = OCDSDataMapper(mock_config)
+    mapper.transform_row = mock.Mock(
+        side_effect=[
+            {"ocid": "1", "field": "value1", "tender": {"id": "tender"}},
+            {
+                "ocid": "2",
+                "field": "value2",
+                "tender": {"id": "tender"},
+                "awards": [{"id": "award"}],
+                "contracts": [{"id": "contract"}],
+            },
+        ]
+    )
+
+    result = mapper.transform_data([{"ocid": 1}, {"ocid": 2}], mock_mapping)
+
+    expected_result = [
+        {
+            "field": "value1",
+            "tender": {"id": "tender"},
+            "initiationType": "tender",
+            "date": "2022-01-01T00:00:00Z",
+            "ocid": "prefix-1",
+            "tag": ["tender"],
+            "id": generate_hash(
+                {
+                    "field": "value1",
+                    "tender": {"id": "tender"},
+                    "initiationType": "tender",
+                    "date": "2022-01-01T00:00:00Z",
+                    "ocid": "prefix-1",
+                    "tag": ["tender"],
+                }
+            ),
+        },
+        {
+            "field": "value2",
+            "tender": {"id": "tender"},
+            "awards": [{"id": "award"}],
+            "contracts": [{"id": "contract"}],
+            "initiationType": "tender",
+            "date": "2022-01-01T00:00:00Z",
+            "ocid": "prefix-2",
+            "tag": ["tender", "award", "contract"],
+            "id": generate_hash(
+                {
+                    "field": "value2",
+                    "tender": {"id": "tender"},
+                    "awards": [{"id": "award"}],
+                    "contracts": [{"id": "contract"}],
+                    "initiationType": "tender",
+                    "date": "2022-01-01T00:00:00Z",
+                    "ocid": "prefix-2",
+                    "tag": ["tender", "award", "contract"],
+                }
+            ),
+        },
+    ]
+
+    assert result == expected_result
 
 
 if __name__ == "__main__":
