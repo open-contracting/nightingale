@@ -1,11 +1,11 @@
 import logging
-from typing import Any, Dict
+from typing import Any
 
 import dict_hash
 
 from .config import Config
-from .mapping.v1 import Mapping
-from .utils import get_iso_now, remove_dicts_without_id
+from .mapping.v1 import Mapping, MappingTemplateValidator
+from .utils import get_iso_now, is_new_array, remove_dicts_without_id
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class OCDSDataMapper:
         prefix = self.config.mapping.ocid_prefix
         return f"{prefix}-{value}"
 
-    def map(self, loader: Any) -> list[dict[str, Any]]:
+    def map(self, loader: Any, validate_mapping: bool = False) -> list[dict[str, Any]]:
         """
         Map data from the loader to the OCDS format.
 
@@ -51,6 +51,10 @@ class OCDSDataMapper:
         config = self.config.mapping
         mapping = Mapping(config)
         data = loader.load(config.selector)
+        if validate_mapping:
+            validator = MappingTemplateValidator(loader, mapping)
+            validator.validate_data_elements()
+            validator.validate_selector(data[0])
         logger.info("Start mapping data")
         return self.transform_data(data, mapping)
 
@@ -75,24 +79,26 @@ class OCDSDataMapper:
             if not ocid:
                 logger.warning(f"No OCID found in row: {row}. Skipping.")
                 continue
-
-            curr_release = self.transform_row(row, mapping, mapping.get_scheme(), curr_release)
-            if curr_ocid != ocid:
-                if not curr_ocid:
-                    curr_ocid = ocid
-                    continue
+            if not curr_ocid:
                 curr_ocid = ocid
-                self.tag_initiation_type(curr_release)
-                self.date_release(curr_release)
-                self.tag_ocid(curr_release, curr_ocid)
-                self.tag_tags(curr_release)
-                self.make_release_id(curr_release)
-                logger.info(f"Release mapped: {curr_release['ocid']}")
-                curr_release = self.remove_empty_id_arrays(curr_release)
-                mapped.append(curr_release)
+            if curr_ocid != ocid:
+                self.finish_release(curr_ocid, curr_release, mapped)
+                curr_ocid = ocid
                 curr_release = {}
-                continue
+            curr_release = self.transform_row(row, mapping, mapping.get_schema(), curr_release)
+        if curr_release:
+            self.finish_release(curr_ocid, curr_release, mapped)
         return mapped
+
+    def finish_release(self, curr_ocid, curr_release, mapped):
+        self.tag_initiation_type(curr_release)
+        self.date_release(curr_release)
+        self.tag_ocid(curr_release, curr_ocid)
+        self.tag_tags(curr_release)
+        self.make_release_id(curr_release)
+        logger.info(f"Release mapped: {curr_release['ocid']}")
+        curr_release = self.remove_empty_id_arrays(curr_release)
+        mapped.append(curr_release)
 
     def transform_row(
         self,
@@ -149,17 +155,9 @@ class OCDSDataMapper:
                 else:
                     nested_dict[last_key] = value
 
-        def is_array_path(path):
-            return flattened_schema.get(path, {}).get("type") == "array"
-
         if not result:
             result = {}
         array_counters = {}
-
-        def is_new_array(array_counters, child_path, array_key, array_value):
-            if array_key == "id" and "/" + array_key == child_path and array_counters[array_path] != array_value:
-                return True
-            return False
 
         for flat_col, value in input_data.items():
             if not value:
@@ -174,7 +172,7 @@ class OCDSDataMapper:
                     array_key = keys[-1]
                     array_value = value
                     if array_path in array_counters:
-                        if add_new := is_new_array(array_counters, child_path, array_key, array_value):
+                        if add_new := is_new_array(array_counters, child_path, array_key, array_value, array_path):
                             array_counters[array_path] = array_value
                             set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=add_new)
                     else:
@@ -246,12 +244,12 @@ class OCDSDataMapper:
             curr_row["tag"] = []
         if "tender" in curr_row:
             curr_row["tag"].append("tender")
-        if "award" in curr_row:
+        if "awards" in curr_row:
             curr_row["tag"].append("award")
-        if "contract" in curr_row:
+        if "contracts" in curr_row:
             curr_row["tag"].append("contract")
 
-    def remove_empty_id_arrays(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def remove_empty_id_arrays(self, data: Any) -> Any:
         """
         Recursively remove arrays that do not contain an 'id' field.
 

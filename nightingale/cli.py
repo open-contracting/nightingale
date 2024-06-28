@@ -33,13 +33,14 @@ def setup_logging(loglevel):
     required=True,
 )
 @click.option("--package", is_flag=True, default=False, help="Package data")
+@click.option("--validate-mapping", is_flag=True, default=False, help="Validate mapping template")
 @click.option(
     "--loglevel",
     type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False),
     default="INFO",
     help="Set the logging level",
 )
-def run(config_file, package, loglevel):
+def run(config_file, package, validate_mapping, loglevel):
     setup_logging(loglevel)
     logger.info("Start transforming")
 
@@ -48,7 +49,7 @@ def run(config_file, package, loglevel):
         mapper = OCDSDataMapper(config)
         writer = DataWriter(config.output)
         logger.info("Mapping data...")
-        ocds_data = mapper.map(DataLoader(config.datasource))
+        ocds_data = mapper.map(DataLoader(config.datasource), validate_mapping=validate_mapping)
 
         if package:
             logger.info("Packaging data...")
