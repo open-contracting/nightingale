@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 
 def produce_package_name(date) -> str:
@@ -19,7 +19,7 @@ def remove_dicts_without_id(data):
 
 
 def get_iso_now():
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     return now.isoformat() + "Z"
 
 
