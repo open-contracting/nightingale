@@ -44,16 +44,12 @@ class Mapping:
         return mappings
 
     def read_mapping_sheet(self, sheet):
-        headers = [cell.value for cell in sheet[3]]
         # Iterate over the rows, starting from the third row
         in_extensions = False
         current_extension = ""
         mappings = []
 
         for row in sheet.iter_rows(min_row=4, values_only=True):
-            if len(row) != len(headers):
-                logger.debug(f"Row {row} does not have the same number of columns as the headers")
-                continue
             column_type = row[0]
             path = row[2]
             title = row[3]
@@ -113,6 +109,9 @@ class Mapping:
             }
         return elements
 
+    def get_data_elements(self):
+        return self.data_elements
+
     def read_schema_sheet(self):
         sheet = self.get_schema_sheet()
         if sheet is None:
@@ -155,14 +154,14 @@ class Mapping:
             + sections["implementation"]
         )
 
-    def get_mapping(self):
+    def get_mappings(self):
         return self.mappings
 
     def get_mapping_for(self, path):
         result = []
         if not path.startswith("/"):
             path = "/" + path
-        for mapping in self.mappings:
+        for mapping in self.get_mappings():
             if mapping["path"] == path:
                 result.append(mapping)
         return result
@@ -172,7 +171,7 @@ class Mapping:
 
     def get_paths_for_mapping(self, key, force_publish=False):
         result = []
-        for mapping in self.mappings:
+        for mapping in self.get_mappings():
             if mapping["mapping"] == key:
                 element = self.get_element_by_mapping(key)
                 if element["publish"] or force_publish:
@@ -189,7 +188,7 @@ class Mapping:
                 result.append(path)
         return result
 
-    def get_scheme(self):
+    def get_schema(self):
         return self.schema
 
     def get_ocid_mapping(self):

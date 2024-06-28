@@ -3,7 +3,8 @@ from unittest.mock import MagicMock, patch
 import openpyxl
 import pytest
 
-from nightingale.mapping.v1 import Mapping  # Replace 'your_module' with the actual name of your module
+from nightingale.mapping.v1 import Mapping
+from nightingale.mapping.v1.config import get_longest_array_path
 
 
 def test_sheets():
@@ -11,6 +12,19 @@ def test_sheets():
         "OCDS Schema": [
             (None, "array_path", "title1", "description1", "array", "range1", "values1", "links1", None, None),
             (None, "path1", "title2", "description2", "string", "range2", "values2", "links2", None, None),
+            (None, "", "not set", "not set", "string", "range2", "values2", "links2", None, None),
+            (
+                None,
+                "array_path",
+                "object_inside_array",
+                "object_inside_array",
+                "object",
+                "",
+                "values2",
+                "links2",
+                None,
+                None,
+            ),
         ],
         "2. Data Elements": [
             (
@@ -41,10 +55,40 @@ def test_sheets():
                 None,
                 None,
             ),
+            (
+                "mapping3",
+                "source3",
+                "table3",
+                "",
+                "no",
+                "not set",
+                "not set",
+                "type2",
+                None,
+                None,
+                None,
+                None,
+            ),
         ],
         "ocds": [
             ("field", "id", "path", "title", "description", "mapping", None, None, None, None),
-            ("field", "id", "path2", "title2", "description2", "mapping2", None, None, None, None),
+            ("required_field", "id", "path2", "title2", "description2", "mapping2", None, None, None, None),
+            ("field", "id", "path_not_mapped", "title_not_mapped", "description", "", None, None, None, None),
+            ("span", "text", "text", "text", "description", "", None, None, None, None),
+            ("section", "text", "Extensions are additions", "text", "description", "", None, None, None, None),
+            ("extension", "extension_name", "extension:description", "", "", "", None, None, None, None),
+            (
+                "additional_field",
+                "extension_field",
+                "extension_field",
+                "extension_field_title",
+                "description",
+                "extension_mapping",
+                None,
+                None,
+                None,
+                None,
+            ),
         ],
     }
 
@@ -150,7 +194,7 @@ def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
     mock_load_workbook.return_value = mock_workbook
 
     mapping = Mapping(mock_config)
-    schema = mapping.read_schema_sheet()
+    schema = mapping.get_schema()
 
     expected_schema = {
         "/array_path": {
@@ -171,6 +215,8 @@ def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
         },
     }
     assert schema == expected_schema
+    assert mapping.get_arrays() == ["/array_path"]
+    assert mapping.get_containing_array_path("/array_path/id") == "/array_path"
 
 
 @patch("openpyxl.load_workbook")
@@ -226,8 +272,18 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "mapping": "mapping2",
             "is_extensions": False,
             "extension": "",
-            "is_required": False,
+            "is_required": True,
             "is_additional": False,
+        },
+        {
+            "description": "description",
+            "extension": "extension",
+            "is_additional": True,
+            "is_extensions": True,
+            "is_required": False,
+            "mapping": "extension_mapping",
+            "path": "/extension_field",
+            "title": "extension_field_title",
         },
         {
             "path": "/path",
@@ -246,8 +302,18 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "mapping": "mapping2",
             "is_extensions": False,
             "extension": "",
-            "is_required": False,
+            "is_required": True,
             "is_additional": False,
+        },
+        {
+            "description": "description",
+            "extension": "extension",
+            "is_additional": True,
+            "is_extensions": True,
+            "is_required": False,
+            "mapping": "extension_mapping",
+            "path": "/extension_field",
+            "title": "extension_field_title",
         },
         {
             "path": "/path",
@@ -266,8 +332,18 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "mapping": "mapping2",
             "is_extensions": False,
             "extension": "",
-            "is_required": False,
+            "is_required": True,
             "is_additional": False,
+        },
+        {
+            "description": "description",
+            "extension": "extension",
+            "is_additional": True,
+            "is_extensions": True,
+            "is_required": False,
+            "mapping": "extension_mapping",
+            "path": "/extension_field",
+            "title": "extension_field_title",
         },
         {
             "path": "/path",
@@ -286,8 +362,18 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "mapping": "mapping2",
             "is_extensions": False,
             "extension": "",
-            "is_required": False,
+            "is_required": True,
             "is_additional": False,
+        },
+        {
+            "description": "description",
+            "extension": "extension",
+            "is_additional": True,
+            "is_extensions": True,
+            "is_required": False,
+            "mapping": "extension_mapping",
+            "path": "/extension_field",
+            "title": "extension_field_title",
         },
         {
             "path": "/path",
@@ -306,8 +392,18 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "mapping": "mapping2",
             "is_extensions": False,
             "extension": "",
-            "is_required": False,
+            "is_required": True,
             "is_additional": False,
+        },
+        {
+            "description": "description",
+            "extension": "extension",
+            "is_additional": True,
+            "is_extensions": True,
+            "is_required": False,
+            "mapping": "extension_mapping",
+            "path": "/extension_field",
+            "title": "extension_field_title",
         },
         {
             "path": "/path",
@@ -326,11 +422,35 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "mapping": "mapping2",
             "is_extensions": False,
             "extension": "",
-            "is_required": False,
+            "is_required": True,
             "is_additional": False,
+        },
+        {
+            "description": "description",
+            "extension": "extension",
+            "is_additional": True,
+            "is_extensions": True,
+            "is_required": False,
+            "mapping": "extension_mapping",
+            "path": "/extension_field",
+            "title": "extension_field_title",
         },
     ]
-    assert mapping.mappings == expected_mappings
+    mapping.get_mappings()
+    assert mapping.get_mappings() == expected_mappings
+    assert mapping.get_mapping_for("path2") == [
+        {
+            "path": "/path2",
+            "title": "title2",
+            "description": "description2",
+            "mapping": "mapping2",
+            "is_extensions": False,
+            "extension": "",
+            "is_required": True,
+            "is_additional": False,
+        }
+        for _ in range(6)
+    ]
 
 
 @patch("openpyxl.load_workbook")
@@ -462,9 +582,15 @@ def test_is_array_path(mock_load_workbook, mock_workbook, mock_config):
 
     mapping = Mapping(mock_config)
     mapping.schema = mapping.read_schema_sheet()
-
     assert mapping.is_array_path("/array_path") is True
     assert mapping.is_array_path("/path2") is False
+
+
+def test_get_longest_array_path():
+    arrays = ["/root/level1/level2", "/root/level1", "/root/level1/level2/level3"]
+    path = "/root/level1/level2/element"
+    result = get_longest_array_path(arrays, path)
+    assert result == "/root/level1/level2"
 
 
 if __name__ == "__main__":
