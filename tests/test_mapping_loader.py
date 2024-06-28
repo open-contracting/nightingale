@@ -7,7 +7,7 @@ from nightingale.mapping_template.v09 import MappingTemplate
 from nightingale.utils import get_longest_array_path
 
 
-def test_sheets():
+def _sheets():
     return {
         "OCDS Schema": [
             (None, "array_path", "title1", "description1", "array", "range1", "values1", "links1", None, None),
@@ -94,7 +94,7 @@ def test_sheets():
 
 
 def getter(key):
-    sheets = test_sheets()
+    sheets = _sheets()
     mock_sheet = MagicMock()
     if "schema" in key.lower():
         data = sheets["OCDS Schema"]
