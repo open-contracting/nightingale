@@ -50,8 +50,11 @@ class OCDSDataMapper:
         """
         config = self.config.mapping
         mapping = MappingTemplate(config)
+        logger.info("MappingTemplate data loaded")
         data = loader.load(config.selector)
+        logger.info("Source data is loaded...")
         if validate_mapping:
+            logger.info("Validating mapping template...")
             validator = MappingTemplateValidator(loader, mapping)
             validator.validate_data_elements()
             validator.validate_selector(data[0])

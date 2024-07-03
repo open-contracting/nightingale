@@ -6,7 +6,7 @@ import simplejson as json
 from .utils import produce_package_name
 
 
-def new_name(package: dict) -> str:
+def new_name(package: dict | list) -> str:
     """
     Generate a new name for the package based on its published date.
 
@@ -15,7 +15,11 @@ def new_name(package: dict) -> str:
     :return: The generated package name.
     :rtype: str
     """
-    date = package.get("publishedDate", datetime.now().isoformat())
+
+    if isinstance(package, list):
+        date = datetime.now().isoformat()
+    else:
+        date = package.get("publishedDate", datetime.now().isoformat())
     return produce_package_name(date)
 
 
@@ -59,7 +63,7 @@ class DataWriter:
         base = self.make_dirs()
         return base / new_name(package)
 
-    def write(self, package: dict) -> None:
+    def write(self, package: list | dict) -> None:
         """
         Write the release package to disk.
 

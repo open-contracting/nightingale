@@ -1,7 +1,9 @@
 import logging
+import tomllib
 
 import click
 import click_pathlib
+from pydantic import TypeAdapter
 
 from .config import Config
 from .loader import DataLoader
@@ -9,7 +11,6 @@ from .mapper import OCDSDataMapper
 from .publisher import DataPublisher
 from .writer import DataWriter
 
-# Set up logging
 logger = logging.getLogger(__name__)
 
 
@@ -22,6 +23,20 @@ def setup_logging(loglevel):
         level=getattr(logging, loglevel.upper()),
         handlers=[handler],
     )
+
+
+def load_config(config_file):
+    """
+    Load configuration data from a TOML file.
+
+    :param config_file: Path to the configuration file.
+    :return: Dictionary with configuration data.
+    """
+    try:
+        with open(config_file, "rb") as f:
+            return tomllib.load(f)
+    except tomllib.TOMLDecodeError:
+        raise click.ClickException(f"Error decoding TOML from {config_file}.")
 
 
 @click.command()
@@ -40,24 +55,91 @@ def setup_logging(loglevel):
     default="INFO",
     help="Set the logging level",
 )
-def run(config_file, package, validate_mapping, loglevel):
+@click.option("--datasource", type=str, help="Datasource connection string")
+@click.option("--mapping-file", type=click_pathlib.Path(exists=True), help="Mapping file path")
+@click.option("--ocid-prefix", type=str, help="OCID prefix")
+@click.option("--selector", type=str, help="Selector")
+@click.option("--force-publish", is_flag=True, help="Force publish")
+@click.option("--publisher", type=str, help="Publisher")
+@click.option("--base-uri", type=str, help="Base URI")
+@click.option("--version", type=str, help="Version")
+@click.option("--publisher-uid", type=str, help="Publisher UID")
+@click.option("--publisher-scheme", type=str, help="Publisher scheme")
+@click.option("--publisher-uri", type=str, help="Publisher URI")
+@click.option("--extensions", type=str, multiple=True, help="Extensions")
+@click.option("--output-directory", type=click_pathlib.Path(exists=True), help="Output directory")
+def run(
+    config_file,
+    package,
+    validate_mapping,
+    loglevel,
+    datasource,
+    mapping_file,
+    ocid_prefix,
+    selector,
+    force_publish,
+    publisher,
+    base_uri,
+    version,
+    publisher_uid,
+    publisher_scheme,
+    publisher_uri,
+    extensions,
+    output_directory,
+):
+    """
+    Run the data transformation process.
+
+    :param config_file: Path to the configuration file.
+    :param package: Flag to indicate whether to package the data.
+    :param validate_mapping: Flag to indicate whether to validate the mapping template.
+    :param loglevel: Logging level.
+    """
     setup_logging(loglevel)
-    logger.info("Start transforming")
+    logger.info("Starting data transformation")
 
     try:
-        config = Config.from_file(config_file)
+        logger.debug(f"Loading configuration from {config_file}")
+        config_data = load_config(config_file)
+
+        # Apply CLI overrides
+        if datasource:
+            config_data["datasource"] = {"connection": datasource}
+        if mapping_file or ocid_prefix or selector or force_publish:
+            config_data["mapping"] = {
+                "file": mapping_file or config_data["mapping"]["file"],
+                "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
+                "selector": selector or config_data["mapping"]["selector"],
+                "force_publish": force_publish
+                if force_publish is not None
+                else config_data["mapping"].get("force_publish", False),
+            }
+        if publisher or base_uri or version or publisher_uid or publisher_scheme or publisher_uri or extensions:
+            config_data["publishing"] = {
+                "publisher": publisher or config_data["publishing"]["publisher"],
+                "base_uri": base_uri or config_data["publishing"]["base_uri"],
+                "version": version or config_data["publishing"].get("version", ""),
+                "publisher_uid": publisher_uid or config_data["publishing"].get("publisher_uid", ""),
+                "publisher_scheme": publisher_scheme or config_data["publishing"].get("publisher_scheme", ""),
+                "publisher_uri": publisher_uri or config_data["publishing"].get("publisher_uri", ""),
+                "extensions": list(extensions) if extensions else config_data["publishing"].get("extensions", []),
+            }
+        if output_directory:
+            config_data["output"] = {"directory": output_directory}
+
+        # Validate final configuration
+        config = TypeAdapter(Config).validate_python(config_data)
         mapper = OCDSDataMapper(config)
         writer = DataWriter(config.output)
-        logger.info("MappingTemplate data...")
+
         ocds_data = mapper.map(DataLoader(config.datasource), validate_mapping=validate_mapping)
 
         if package:
             logger.info("Packaging data...")
             packer = DataPublisher(config.publishing)
             ocds_data = packer.package(ocds_data)
-
         logger.info("Writing data...")
-        writer.write({"releases": ocds_data} if not package else ocds_data)
+        writer.write(ocds_data)
         logger.info("Data transformation completed successfully")
 
     except Exception as e:

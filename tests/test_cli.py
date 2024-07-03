@@ -14,6 +14,7 @@ class TestCli(unittest.TestCase):
         self.runner = CliRunner()
         self.temp_dir = tempfile.TemporaryDirectory()
         self.config_path = Path(self.temp_dir.name) / "test_config.toml"
+        self.invalid_config_path = Path(self.temp_dir.name) / "invalid_test_config.toml"
         self.config_data = """
         [datasource]
         connection = "test_connection"
@@ -35,15 +36,24 @@ class TestCli(unittest.TestCase):
         with open(self.config_path, "w") as f:
             f.write(self.config_data)
 
+        self.invalid_config_data = """
+        [datasource
+        connection = "test_connection"
+        """
+        with open(self.invalid_config_path, "w") as f:
+            f.write(self.invalid_config_data)
+
     def tearDown(self):
         self.temp_dir.cleanup()
 
+    @patch("nightingale.cli.Config.from_file")
     @patch("nightingale.cli.OCDSDataMapper")
     @patch("nightingale.cli.DataLoader")
     @patch("nightingale.cli.DataWriter")
     @patch("nightingale.cli.DataPublisher")
-    def test_run_without_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper):
+    def test_run_without_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
+        mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
         mock_mapper.return_value = mock_mapper_instance
 
@@ -53,7 +63,7 @@ class TestCli(unittest.TestCase):
         mock_writer_instance = MagicMock()
         mock_writer.return_value = mock_writer_instance
 
-        mock_mapper_instance.map.return_value = {"dummy_data": "data"}
+        mock_mapper_instance.map.return_value = [{"dummy_data": "data"}]
 
         result = self.runner.invoke(run, ["--config", str(self.config_path), "--loglevel", "INFO"])
 
@@ -61,15 +71,17 @@ class TestCli(unittest.TestCase):
         mock_mapper.assert_called_once()
         mock_loader.assert_called_once()
         mock_writer.assert_called_once()
-        mock_writer_instance.write.assert_called_once_with({"releases": {"dummy_data": "data"}})
+        mock_writer_instance.write.assert_called_once_with([{"dummy_data": "data"}])
         mock_publisher.assert_not_called()
 
+    @patch("nightingale.cli.Config.from_file")
     @patch("nightingale.cli.OCDSDataMapper")
     @patch("nightingale.cli.DataLoader")
     @patch("nightingale.cli.DataWriter")
     @patch("nightingale.cli.DataPublisher")
-    def test_run_with_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper):
+    def test_run_with_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
+        mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
         mock_mapper.return_value = mock_mapper_instance
 
@@ -101,11 +113,13 @@ class TestCli(unittest.TestCase):
 
         self.assertIn("This is a debug message", log.output[0])
 
+    @patch("nightingale.cli.Config.from_file")
     @patch("nightingale.cli.OCDSDataMapper")
     @patch("nightingale.cli.DataLoader")
     @patch("nightingale.cli.DataWriter")
-    def test_run_mapping_crash(self, mock_writer, mock_loader, mock_mapper):
+    def test_run_mapping_crash(self, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
+        mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
         mock_mapper.return_value = mock_mapper_instance
 
@@ -123,6 +137,11 @@ class TestCli(unittest.TestCase):
         self.assertIn("Error during transformation: Simulated mapping crash", result.output)
         mock_mapper.assert_called_once()
         mock_loader.assert_called_once()
+
+    def test_invalid_toml_file(self):
+        result = self.runner.invoke(run, ["--config", str(self.invalid_config_path), "--loglevel", "INFO"])
+        self.assertNotEqual(result.exit_code, 0)
+        self.assertIn("Error decoding TOML", result.output)
 
 
 if __name__ == "__main__":
