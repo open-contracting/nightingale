@@ -1,4 +1,5 @@
 import tomllib
+from dataclasses import field
 from pathlib import Path
 from typing import Optional, Self
 
@@ -20,9 +21,13 @@ class Datasource:
 
 @dataclass(frozen=True)
 class Publishing:
-    version: str
     publisher: str
     base_uri: str
+    version: str = ""
+    publisher_uid: str = ""
+    publisher_scheme: str = ""
+    publisher_uri: str = ""
+    extensions: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
