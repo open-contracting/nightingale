@@ -1,4 +1,5 @@
 from typing import Any
+from urllib.parse import urljoin
 
 from ocdskit.combine import package_releases
 
@@ -32,7 +33,8 @@ class DataPublisher:
         :return: The produced URI.
         :rtype: str
         """
-        return f"{self.config.base_uri}/{produce_package_name(self.date)}"
+        full_name = produce_package_name(self.date)
+        return urljoin(self.config.base_uri, f"/{full_name}")
 
     def package(self, data: list[dict[str, Any]]) -> dict[str, Any]:
         """
