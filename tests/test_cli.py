@@ -15,6 +15,10 @@ class TestCli(unittest.TestCase):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.config_path = Path(self.temp_dir.name) / "test_config.toml"
         self.invalid_config_path = Path(self.temp_dir.name) / "invalid_test_config.toml"
+        self.selector_data = "SELECT * FROM test_table;"
+        self.selector_path = Path(self.temp_dir.name) / "test_selector.sql"
+        with open(self.selector_path, "w") as f:
+            f.write(self.selector_data)
         self.config_data = """
         [datasource]
         connection = "test_connection"
@@ -142,6 +146,34 @@ class TestCli(unittest.TestCase):
         result = self.runner.invoke(run, ["--config", str(self.invalid_config_path), "--loglevel", "INFO"])
         self.assertNotEqual(result.exit_code, 0)
         self.assertIn("Error decoding TOML", result.output)
+
+    @patch("nightingale.cli.Config.from_file")
+    @patch("nightingale.cli.OCDSDataMapper")
+    @patch("nightingale.cli.DataLoader")
+    @patch("nightingale.cli.DataWriter")
+    def test_run_with_selector_file(self, mock_writer, mock_loader, mock_mapper, mock_config):
+        # Setup mocks
+        mock_config.return_value = MagicMock()
+        mock_mapper_instance = MagicMock()
+        mock_mapper.return_value = mock_mapper_instance
+
+        mock_loader_instance = MagicMock()
+        mock_loader.return_value = mock_loader_instance
+
+        mock_writer_instance = MagicMock()
+        mock_writer.return_value = mock_writer_instance
+
+        mock_mapper_instance.map.return_value = [{"dummy_data": "data"}]
+
+        result = self.runner.invoke(
+            run, ["--config", str(self.config_path), "--selector", str(self.selector_path), "--loglevel", "INFO"]
+        )
+
+        self.assertEqual(result.exit_code, 0)
+        mock_mapper.assert_called_once()
+        mock_loader.assert_called_once()
+        mock_writer.assert_called_once()
+        mock_writer_instance.write.assert_called_once_with([{"dummy_data": "data"}])
 
 
 if __name__ == "__main__":

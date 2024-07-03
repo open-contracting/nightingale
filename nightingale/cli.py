@@ -58,15 +58,15 @@ def load_config(config_file):
 @click.option("--datasource", type=str, help="Datasource connection string")
 @click.option("--mapping-file", type=click_pathlib.Path(exists=True), help="Mapping file path")
 @click.option("--ocid-prefix", type=str, help="OCID prefix")
-@click.option("--selector", type=str, help="Selector")
+@click.option("--selector", type=click_pathlib.Path(exists=True), help="Path to selector SQL script")
 @click.option("--force-publish", is_flag=True, help="Force publish")
-@click.option("--publisher", type=str, help="Publisher")
-@click.option("--base-uri", type=str, help="Base URI")
-@click.option("--version", type=str, help="Version")
+@click.option("--publisher", type=str, help="Publisher name")
+@click.option("--base-uri", type=str, help="Package base URI")
+@click.option("--version", type=str, help="OCDS Version")
 @click.option("--publisher-uid", type=str, help="Publisher UID")
 @click.option("--publisher-scheme", type=str, help="Publisher scheme")
 @click.option("--publisher-uri", type=str, help="Publisher URI")
-@click.option("--extensions", type=str, multiple=True, help="Extensions")
+@click.option("--extensions", type=str, multiple=True, help="List of extensions")
 @click.option("--output-directory", type=click_pathlib.Path(exists=True), help="Output directory")
 def run(
     config_file,
@@ -106,10 +106,17 @@ def run(
         if datasource:
             config_data["datasource"] = {"connection": datasource}
         if mapping_file or ocid_prefix or selector or force_publish:
+            selector_content = config_data["mapping"]["selector"]
+            if selector:
+                try:
+                    with open(selector, "r") as f:
+                        selector_content = f.read()
+                except (OSError, IOError) as e:
+                    raise click.ClickException(f"Error reading selector file {selector}: {e}")
             config_data["mapping"] = {
                 "file": mapping_file or config_data["mapping"]["file"],
                 "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
-                "selector": selector or config_data["mapping"]["selector"],
+                "selector": selector_content,
                 "force_publish": force_publish
                 if force_publish is not None
                 else config_data["mapping"].get("force_publish", False),
