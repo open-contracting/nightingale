@@ -443,7 +443,7 @@ def test_finish_release(mock_get_iso_now, mock_config):
 
     curr_release = {
         "field": "value1",
-        "tender": {},
+        "tender": {"id": 1},
     }
     curr_ocid = "1"
     mapped = []
@@ -456,6 +456,7 @@ def test_finish_release(mock_get_iso_now, mock_config):
         "date": "2022-01-01T00:00:00Z",
         "ocid": "prefix-1",
         "tag": ["tender"],
+        "tender": {"id": 1},
         "id": generate_hash(
             {
                 "field": "value1",
@@ -463,6 +464,7 @@ def test_finish_release(mock_get_iso_now, mock_config):
                 "date": "2022-01-01T00:00:00Z",
                 "ocid": "prefix-1",
                 "tag": ["tender"],
+                "tender": {"id": 1},
             }
         ),
     }
