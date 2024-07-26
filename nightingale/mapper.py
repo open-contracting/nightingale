@@ -78,7 +78,7 @@ class OCDSDataMapper:
 
         ocid_mapping = mapping.get_ocid_mapping()
         for row in data:
-            ocid = row.pop(ocid_mapping, "")
+            ocid = row.get(ocid_mapping, "")
             if not ocid:
                 logger.warning(f"No OCID found in row: {row}. Skipping.")
                 continue
