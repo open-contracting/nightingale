@@ -1,5 +1,6 @@
 import logging
 import tomllib
+import traceback
 
 import click
 import click_pathlib
@@ -150,6 +151,7 @@ def run(
         logger.info("Data transformation completed successfully")
 
     except Exception as e:
+        click.echo(traceback.format_exc())
         raise click.ClickException(f"Error during transformation: {e}")
 
 
