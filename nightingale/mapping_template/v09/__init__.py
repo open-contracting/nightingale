@@ -19,7 +19,7 @@ MAPPINGS_SHEETS = [
     "(OCDS) 6. Implementation",
 ]
 DATA_SHEET = "2. Data Elements"
-SCHEMA_SHEET = "OCDS Schema"
+SCHEMA_SHEET = "Schema"
 
 
 class MappingTemplate:
@@ -29,15 +29,12 @@ class MappingTemplate:
         self.data_elements = self.read_data_elements_sheet(self.wb[DATA_SHEET])
         # self.data_sources = self.read_sheet('1. Data Sources', skiprows=3)
         mappings = self.read_mappings()
-        mappings = self.normmalize_mapping_column(mappings)
+        # mappings = self.normmalize_mapping_column(mappings)
         self.mappings = self.enforce_mapping_structure(mappings)
         self.schema = self.read_schema_sheet()
 
     def get_schema_sheet(self):
-        for sheet in self.wb.sheetnames:
-            if SCHEMA_SHEET in sheet:
-                return self.wb[sheet]
-        return None
+        return [self.wb[sheet] for sheet in self.wb.sheetnames if "OCDS" in sheet and SCHEMA_SHEET in sheet]
 
     def normmalize_mapping_column(self, mappings):
         """Normalize the mapping column by setting all space separators to one space"""
@@ -74,7 +71,6 @@ class MappingTemplate:
                     }
                     mappings.append(row)
                 case "span" | "extension_span" | "subtitle" | "ref_span" | "required_span":
-                    # informational, but not useful for machine
                     continue
                 case "section":
                     if EXTENSIONS in path or ADDITONAL_FIELDS in path:
@@ -116,27 +112,28 @@ class MappingTemplate:
         return self.data_elements
 
     def read_schema_sheet(self):
-        sheet = self.get_schema_sheet()
-        if sheet is None:
+        sheets = self.get_schema_sheet()
+        if sheets is None:
             return {}
         schema = {}
-        for row in sheet.iter_rows(min_row=2, values_only=True):
-            _, path, title, description, type, range, values, links, _, _ = row
-            if not path:
-                continue
-            path = "/" + path
+        for sheet in sheets:
+            for row in sheet.iter_rows(min_row=2, values_only=True):
+                _, path, title, description, type, range, values, links, _, _ = row
+                if not path:
+                    continue
+                path = "/" + path
 
-            if path in schema and type == "object":
-                # this is a nested object inside arrray we are interested in parrent array path
-                continue
-            schema[path] = {
-                "title": title,
-                "description": description,
-                "type": type,
-                "range": range,
-                "values": values,
-                "links": links,
-            }
+                if path in schema and type == "object":
+                    # this is a nested object inside arrray we are interested in parrent array path
+                    continue
+                schema[path] = {
+                    "title": title,
+                    "description": description,
+                    "type": type,
+                    "range": range,
+                    "values": values,
+                    "links": links,
+                }
         return schema
 
     def enforce_mapping_structure(self, mappings):
