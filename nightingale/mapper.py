@@ -88,19 +88,21 @@ class OCDSDataMapper:
                 self.finish_release(curr_ocid, curr_release, mapped)
                 curr_ocid = ocid
                 curr_release = {}
+
             curr_release = self.transform_row(row, mapping, mapping.get_schema(), curr_release)
+
         if curr_release:
             self.finish_release(curr_ocid, curr_release, mapped)
         return mapped
 
     def finish_release(self, curr_ocid, curr_release, mapped):
+        curr_release = self.remove_empty_id_arrays(curr_release)
         self.tag_initiation_type(curr_release)
         self.date_release(curr_release)
         self.tag_ocid(curr_release, curr_ocid)
         self.tag_tags(curr_release)
         self.make_release_id(curr_release)
         logger.info(f"Release mapped: {curr_release['ocid']}")
-        curr_release = self.remove_empty_id_arrays(curr_release)
         mapped.append(curr_release)
 
     def transform_row(
@@ -161,7 +163,6 @@ class OCDSDataMapper:
         if not result:
             result = {}
         array_counters = {}
-
         for flat_col, value in input_data.items():
             if not value:
                 continue
@@ -174,7 +175,12 @@ class OCDSDataMapper:
                     child_path = path[len(array_path) :]
                     array_key = keys[-1]
                     array_value = value
-                    if array_path in array_counters:
+
+                    if path == array_path:
+                        # case for /parties/roles
+                        set_nested_value(result, keys, value, flattened_schema, add_new=True)
+                        continue
+                    elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, array_key, array_value, array_path):
                             array_counters[array_path] = array_value
                             set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=add_new)
@@ -186,12 +192,15 @@ class OCDSDataMapper:
                     current = result
                     for i, key in enumerate(keys[:-1]):
                         if isinstance(current, list):
+                            if not current:
+                                current.append({})
                             current = current[-1]
                         if key not in current:
                             key_path = "/" + "/".join(keys[: i + 1])
                             current[key] = [] if flattened_schema.get(key_path, {}).get("type") == "array" else {}
 
                         current = current[key]
+
                     if isinstance(current, list):
                         if not current:
                             current.append({})
