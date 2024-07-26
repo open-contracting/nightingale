@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 
 def produce_package_name(date) -> str:
@@ -19,8 +19,8 @@ def remove_dicts_without_id(data):
 
 
 def get_iso_now():
-    now = datetime.now(UTC)
-    return now.isoformat() + "Z"
+    now = datetime.now(timezone.utc)
+    return now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def is_new_array(array_counters, child_path, array_key, array_value, array_path):
