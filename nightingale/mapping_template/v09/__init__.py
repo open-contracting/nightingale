@@ -93,7 +93,7 @@ class MappingTemplate:
     def read_data_elements_sheet(self, sheet):
         elements = {}
         for row in sheet.iter_rows(min_row=4, values_only=True):
-            for_mapping, data_source, table, data_element, publish, example, description, data_type, _, _, _, _ = row
+            for_mapping, data_source, table, data_element, publish, example, description, data_type, *_ = row
             if not data_element:
                 continue
             elements[data_element] = {
@@ -118,7 +118,7 @@ class MappingTemplate:
         schema = {}
         for sheet in sheets:
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                _, path, title, description, type, range, values, links, _, _ = row
+                _, path, title, description, type, range, values, links, *_ = row
                 if not path:
                     continue
                 path = "/" + path
