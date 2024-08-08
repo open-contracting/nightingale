@@ -118,7 +118,7 @@ class MappingTemplate:
         schema = {}
         for sheet in sheets:
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                _, path, title, description, type, range, values, links, *_ = row
+                _, path, title, description, type, range, values, links, codelist, *_ = row
                 if not path:
                     continue
                 path = "/" + path
@@ -133,6 +133,7 @@ class MappingTemplate:
                     "range": range,
                     "values": values,
                     "links": links,
+                    "codelist": codelist,
                 }
         return schema
 

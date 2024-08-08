@@ -36,6 +36,7 @@ class Mapping:
     ocid_prefix: str
     selector: str
     force_publish: Optional[bool] = False
+    codelists: Optional[Path] = None
 
 
 @dataclass(frozen=True)

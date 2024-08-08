@@ -1,8 +1,9 @@
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import dict_hash
 
+from .codelists import CodelistsMapping
 from .config import Config
 from .mapping_template.v09 import MappingTemplate, MappingTemplateValidator
 from .utils import get_iso_now, is_new_array, remove_dicts_without_id
@@ -50,6 +51,9 @@ class OCDSDataMapper:
         """
         config = self.config.mapping
         mapping = MappingTemplate(config)
+        codelists = None
+        if config.codelists:
+            codelists = CodelistsMapping(config)
         logger.info("MappingTemplate data loaded")
         data = loader.load(config.selector)
         logger.info("Source data is loaded...")
@@ -59,9 +63,11 @@ class OCDSDataMapper:
             validator.validate_data_elements()
             validator.validate_selector(data[0])
         logger.info("Start mapping data")
-        return self.transform_data(data, mapping)
+        return self.transform_data(data, mapping, codelists=codelists)
 
-    def transform_data(self, data: list[dict[Any, Any]], mapping: MappingTemplate) -> list[dict[str, Any]]:
+    def transform_data(
+        self, data: list[dict[Any, Any]], mapping: MappingTemplate, codelists: Optional[CodelistsMapping] = None
+    ) -> list[dict[str, Any]]:
         """
         Transform the input data to the OCDS format.
 
@@ -89,7 +95,7 @@ class OCDSDataMapper:
                 curr_ocid = ocid
                 curr_release = {}
 
-            curr_release = self.transform_row(row, mapping, mapping.get_schema(), curr_release)
+            curr_release = self.transform_row(row, mapping, mapping.get_schema(), curr_release, codelists=codelists)
 
         if curr_release:
             self.finish_release(curr_ocid, curr_release, mapped)
@@ -111,6 +117,7 @@ class OCDSDataMapper:
         mapping_config: MappingTemplate,
         flattened_schema: dict[str, Any],
         result: dict = None,
+        codelists: Optional[CodelistsMapping] = None,
     ) -> dict:
         """
         Transform a single row of input data to the OCDS format.
@@ -128,6 +135,7 @@ class OCDSDataMapper:
         """
 
         def set_nested_value(nested_dict, keys, value, schema, add_new=False):
+            value = self.map_codelist_value(keys, schema, codelists, value)
             for i, key in enumerate(keys[:-1]):
                 if isinstance(nested_dict, list):
                     if not nested_dict:
@@ -200,7 +208,7 @@ class OCDSDataMapper:
                             current[key] = [] if flattened_schema.get(key_path, {}).get("type") == "array" else {}
 
                         current = current[key]
-
+                    value = self.map_codelist_value(keys, flattened_schema, codelists, value)
                     if isinstance(current, list):
                         if not current:
                             current.append({})
@@ -270,3 +278,12 @@ class OCDSDataMapper:
         """
 
         return remove_dicts_without_id(data)
+
+    def map_codelist_value(self, keys, schema, codelists, value):
+        path = "/" + "/".join(keys)
+        if codelist := schema.get(path, {}).get("codelist"):
+            codelist = codelists.get_mapping_for_codelist(codelist)
+            if codelist:
+                if new_value := codelist.get(value):
+                    return new_value
+        return value

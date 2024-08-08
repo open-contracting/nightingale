@@ -58,6 +58,7 @@ def load_config(config_file):
 )
 @click.option("--datasource", type=str, help="Datasource connection string")
 @click.option("--mapping-file", type=click_pathlib.Path(exists=True), help="Mapping file path")
+@click.option("--codelists-file", type=click_pathlib.Path(exists=True), help="Codelists mapping file path")
 @click.option("--ocid-prefix", type=str, help="OCID prefix")
 @click.option("--selector", type=click_pathlib.Path(exists=True), help="Path to selector SQL script")
 @click.option("--force-publish", is_flag=True, help="Force publish")
@@ -76,6 +77,7 @@ def run(
     loglevel,
     datasource,
     mapping_file,
+    codelists_file,
     ocid_prefix,
     selector,
     force_publish,
@@ -101,37 +103,39 @@ def run(
 
     try:
         logger.debug(f"Loading configuration from {config_file}")
-        config_data = load_config(config_file)
+        config_data = {}
+        if config_file:
+            config_data = load_config(config_file)
 
         # Apply CLI overrides
         if datasource:
             config_data["datasource"] = {"connection": datasource}
-        if mapping_file or ocid_prefix or selector or force_publish:
-            selector_content = config_data["mapping"]["selector"]
-            if selector:
-                try:
-                    with open(selector, "r") as f:
-                        selector_content = f.read()
-                except (OSError, IOError) as e:
-                    raise click.ClickException(f"Error reading selector file {selector}: {e}")
-            config_data["mapping"] = {
-                "file": mapping_file or config_data["mapping"]["file"],
-                "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
-                "selector": selector_content,
-                "force_publish": force_publish
-                if force_publish is not None
-                else config_data["mapping"].get("force_publish", False),
-            }
-        if publisher or base_uri or version or publisher_uid or publisher_scheme or publisher_uri or extensions:
-            config_data["publishing"] = {
-                "publisher": publisher or config_data["publishing"]["publisher"],
-                "base_uri": base_uri or config_data["publishing"]["base_uri"],
-                "version": version or config_data["publishing"].get("version", ""),
-                "publisher_uid": publisher_uid or config_data["publishing"].get("publisher_uid", ""),
-                "publisher_scheme": publisher_scheme or config_data["publishing"].get("publisher_scheme", ""),
-                "publisher_uri": publisher_uri or config_data["publishing"].get("publisher_uri", ""),
-                "extensions": list(extensions) if extensions else config_data["publishing"].get("extensions", []),
-            }
+        selector_content = config_data["mapping"]["selector"]
+        if selector:
+            try:
+                with open(selector, "r") as f:
+                    selector_content = f.read()
+            except (OSError, IOError) as e:
+                raise click.ClickException(f"Error reading selector file {selector}: {e}")
+        # TODO: simplify this
+        config_data["mapping"] = {
+            "file": mapping_file or config_data["mapping"]["file"],
+            "codelists": codelists_file or config_data["mapping"]["codelists"],
+            "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
+            "selector": selector_content,
+            "force_publish": force_publish
+            if force_publish is not None
+            else config_data["mapping"].get("force_publish", False),
+        }
+        config_data["publishing"] = {
+            "publisher": publisher or config_data["publishing"]["publisher"],
+            "base_uri": base_uri or config_data["publishing"]["base_uri"],
+            "version": version or config_data["publishing"].get("version", ""),
+            "publisher_uid": publisher_uid or config_data["publishing"].get("publisher_uid", ""),
+            "publisher_scheme": publisher_scheme or config_data["publishing"].get("publisher_scheme", ""),
+            "publisher_uri": publisher_uri or config_data["publishing"].get("publisher_uri", ""),
+            "extensions": list(extensions) if extensions else config_data["publishing"].get("extensions", []),
+        }
         if output_directory:
             config_data["output"] = {"directory": output_directory}
 
