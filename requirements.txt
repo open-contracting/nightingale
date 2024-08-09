@@ -2,7 +2,6 @@ annotated-types==0.7.0
 click==8.1.7
 click-pathlib==2020.3.13.0
 deepmerge==1.1.1
-deflate_dict==1.0.11
 dict_hash==1.1.37
 et-xmlfile==1.1.0
 flatten-dict==0.4.2
