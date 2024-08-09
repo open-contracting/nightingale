@@ -198,6 +198,7 @@ def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
 
     expected_schema = {
         "/array_path": {
+            "codelist": None,
             "title": "title1",
             "description": "description1",
             "type": "array",
@@ -206,6 +207,7 @@ def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
             "links": "links1",
         },
         "/path1": {
+            "codelist": None,
             "title": "title2",
             "description": "description2",
             "type": "string",

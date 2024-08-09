@@ -120,7 +120,7 @@ def run(
         # TODO: simplify this
         config_data["mapping"] = {
             "file": mapping_file or config_data["mapping"]["file"],
-            "codelists": codelists_file or config_data["mapping"]["codelists"],
+            "codelists": codelists_file or config_data["mapping"].get("codelists"),
             "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
             "selector": selector_content,
             "force_publish": force_publish
