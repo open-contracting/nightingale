@@ -19,6 +19,7 @@ MAPPINGS_SHEETS = [
     "(OCDS) 6. Implementation",
 ]
 DATA_SHEET = "2. Data Elements"
+EXTENSIONS_SHEET = "3. OCDS Extensions"
 SCHEMA_SHEET = "Schema"
 
 
@@ -32,6 +33,7 @@ class MappingTemplate:
         # mappings = self.normmalize_mapping_column(mappings)
         self.mappings = self.enforce_mapping_structure(mappings)
         self.schema = self.read_schema_sheet()
+        self.extensions = self.read_extenions_info()
 
     def get_schema_sheet(self):
         return [self.wb[sheet] for sheet in self.wb.sheetnames if "OCDS" in sheet and SCHEMA_SHEET in sheet]
@@ -108,6 +110,17 @@ class MappingTemplate:
             }
         return elements
 
+    def read_extenions_info(self):
+        sheet = self.wb[EXTENSIONS_SHEET]
+        headers = [(i, cell.value) for i, cell in enumerate(sheet[1])]  # Assuming the first row contains the headers
+        data = []
+        for row in sheet.iter_rows(min_row=2, values_only=True):
+            if not any(row):
+                continue
+            row_data = {k.lower(): row[i] for i, k in headers if k}
+            data.append(row_data)
+        return data
+
     def get_data_elements(self):
         return self.data_elements
 
@@ -129,7 +142,7 @@ class MappingTemplate:
                 schema[path] = {
                     "title": title,
                     "description": description,
-                    "type": type,
+                    "type": "array" if type and "array" in type.lower() else type,
                     "range": range,
                     "values": values,
                     "links": links,
