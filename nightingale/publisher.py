@@ -14,7 +14,7 @@ class DataPublisher:
     :type config: Config
     """
 
-    def __init__(self, config):
+    def __init__(self, config, mapping):
         """
         Initialize the DataPublisher.
 
@@ -22,6 +22,7 @@ class DataPublisher:
         :type config: Config
         """
         self.config = config
+        self.mapping = mapping
         self.date = get_iso_now()
 
     def produce_uri(self) -> str:
@@ -68,7 +69,7 @@ class DataPublisher:
         return publisher
 
     def get_extensions(self):
-        return self.config.extensions
+        return [e.get("url") for e in self.mapping.extensions if e.get("url")]
 
     def get_version(self):
-        self.config.version
+        return self.config.version

@@ -148,7 +148,7 @@ def run(
 
         if package:
             logger.info("Packaging data...")
-            packer = DataPublisher(config.publishing)
+            packer = DataPublisher(config.publishing, mapper.mapping)
             ocds_data = packer.package(ocds_data)
         logger.info("Writing data...")
         writer.write(ocds_data)
