@@ -27,6 +27,10 @@ class OCDSDataMapper:
         :type config: Config
         """
         self.config = config
+        self.mapping = MappingTemplate(config.mapping)
+        self.codelists = None
+        if self.config.mapping.codelists:
+            self.codelists = CodelistsMapping(self.config.mapping)
 
     def produce_ocid(self, value: str) -> str:
         """
@@ -50,20 +54,17 @@ class OCDSDataMapper:
         :rtype: list[dict[str, Any]]
         """
         config = self.config.mapping
-        mapping = MappingTemplate(config)
-        codelists = None
-        if config.codelists:
-            codelists = CodelistsMapping(config)
+
         logger.info("MappingTemplate data loaded")
         data = loader.load(config.selector)
         logger.info("Source data is loaded...")
         if validate_mapping:
             logger.info("Validating mapping template...")
-            validator = MappingTemplateValidator(loader, mapping)
+            validator = MappingTemplateValidator(loader, self.mapping)
             validator.validate_data_elements()
             validator.validate_selector(data[0])
         logger.info("Start mapping data")
-        return self.transform_data(data, mapping, codelists=codelists)
+        return self.transform_data(data, self.mapping, codelists=self.codelists)
 
     def transform_data(
         self, data: list[dict[Any, Any]], mapping: MappingTemplate, codelists: Optional[CodelistsMapping] = None
@@ -80,6 +81,7 @@ class OCDSDataMapper:
         """
         curr_ocid = ""
         curr_release = {}
+        array_counters = {}
         mapped = []
 
         ocid_mapping = mapping.get_ocid_mapping()
@@ -94,8 +96,11 @@ class OCDSDataMapper:
                 self.finish_release(curr_ocid, curr_release, mapped)
                 curr_ocid = ocid
                 curr_release = {}
+                array_counters = {}
 
-            curr_release = self.transform_row(row, mapping, mapping.get_schema(), curr_release, codelists=codelists)
+            curr_release = self.transform_row(
+                row, mapping, mapping.get_schema(), curr_release, array_counters=array_counters, codelists=codelists
+            )
 
         if curr_release:
             self.finish_release(curr_ocid, curr_release, mapped)
@@ -117,6 +122,7 @@ class OCDSDataMapper:
         mapping_config: MappingTemplate,
         flattened_schema: dict[str, Any],
         result: dict = None,
+        array_counters: dict = None,
         codelists: Optional[CodelistsMapping] = None,
     ) -> dict:
         """
@@ -134,29 +140,26 @@ class OCDSDataMapper:
         :rtype: dict
         """
 
+        # XXX: some duplication in code present maybe refactoring needed
         def set_nested_value(nested_dict, keys, value, schema, add_new=False):
             value = self.map_codelist_value(keys, schema, codelists, value)
             for i, key in enumerate(keys[:-1]):
+                subpath = "/" + "/".join(keys[: i + 1])
                 if isinstance(nested_dict, list):
-                    if not nested_dict:
-                        nested_dict.append({})
-                    nested_dict = nested_dict[-1]
+                    nested_dict = self.shift_current_array(nested_dict, subpath, array_counters)
                 if key not in nested_dict:
-                    subpath = "/" + "/".join(keys[: i + 1])
                     nested_dict[key] = [] if schema.get(subpath, {}).get("type") == "array" else {}
                 nested_dict = nested_dict[key]
 
             last_key = keys[-1]
             if isinstance(nested_dict, list):
+                nested_dict = self.shift_current_array(nested_dict, "/" + "/".join(keys), array_counters)
                 if add_new:
-                    if last_key not in nested_dict[-1]:
-                        nested_dict[-1][last_key] = []
-                    nested_dict[-1][last_key].append(value)
-
+                    if last_key not in nested_dict:
+                        nested_dict[last_key] = []
+                    nested_dict[last_key].append(value)
                 else:
-                    if not nested_dict:
-                        nested_dict.append({})
-                    nested_dict[-1][last_key] = value
+                    nested_dict[last_key] = value
             else:
                 if last_key in nested_dict:
                     if isinstance(nested_dict[last_key], list) and add_new:
@@ -170,7 +173,6 @@ class OCDSDataMapper:
 
         if not result:
             result = {}
-        array_counters = {}
         for flat_col, value in input_data.items():
             if not value:
                 continue
@@ -181,7 +183,7 @@ class OCDSDataMapper:
                 keys = path.strip("/").split("/")
                 if array_path := mapping_config.get_containing_array_path(path):
                     child_path = path[len(array_path) :]
-                    array_key = keys[-1]
+                    last_key_name = keys[-1]
                     array_value = value
 
                     if path == array_path:
@@ -189,35 +191,37 @@ class OCDSDataMapper:
                         set_nested_value(result, keys, value, flattened_schema, add_new=True)
                         continue
                     elif array_path in array_counters:
-                        if add_new := is_new_array(array_counters, child_path, array_key, array_value, array_path):
+                        if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
                             array_counters[array_path] = array_value
                             set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=add_new)
                     else:
-                        if array_key == "id":
+                        if last_key_name == "id":
                             array_counters[array_path] = array_value
                         set_nested_value(result, keys[:-1], [{}], flattened_schema)
 
                     current = result
                     for i, key in enumerate(keys[:-1]):
-                        if isinstance(current, list):
-                            if not current:
-                                current.append({})
-                            current = current[-1]
+                        current_path = "/" + "/".join(keys[: i + 1])
+                        is_array = flattened_schema.get(current_path, {}).get("type") == "array"
                         if key not in current:
-                            key_path = "/" + "/".join(keys[: i + 1])
-                            current[key] = [] if flattened_schema.get(key_path, {}).get("type") == "array" else {}
-
+                            current[key] = [] if is_array else {}
                         current = current[key]
+                        if is_array:
+                            current = self.shift_current_array(current, current_path, array_counters)
+
                     value = self.map_codelist_value(keys, flattened_schema, codelists, value)
                     if isinstance(current, list):
-                        if not current:
-                            current.append({})
-                        current[-1][array_key] = value
-                    else:
-                        current[array_key] = value
+                        array_path = mapping_config.get_containing_array_path("/" + "/".join(keys))
+                        current = self.shift_current_array(current, array_path, array_counters)
+                    current[last_key_name] = value
                 else:
                     set_nested_value(result, keys, value, flattened_schema)
         return result
+
+    def shift_current_array(self, current, array_path, array_counters):
+        if not current:
+            current.append({})
+        return find_array_element_by_id(current, array_counters.get(array_path))
 
     def make_release_id(self, curr_row: dict) -> None:
         """
@@ -287,3 +291,32 @@ class OCDSDataMapper:
                 if new_value := codelist.get(value):
                     return new_value
         return value
+
+
+def find_array_element_by_id(current, array_element_id):
+    """
+    Finds and returns the first dictionary in a list of dictionaries that contains the given 'id' value.
+    If no dictionary with the matching 'id' is found, returns the last dictionary in the list.
+
+    :param current: List[Dict], a list of dictionaries to search.
+    :param array_element_id: Any, the target 'id' value to search for.
+    :return: Dict, the dictionary with the matching 'id' value, or the last dictionary if not found.
+
+    Examples:
+        >>> dict_list = [{'id': 1, 'name': 'Alice'}, {'id': 2, 'name': 'Bob'}, {'id': 3, 'name': 'Charlie'}]
+        >>> find_array_element_by_id(dict_list, 2)
+        {'id': 2, 'name': 'Bob'}
+
+        >>> find_array_element_by_id(dict_list, 4)
+        {'id': 3, 'name': 'Charlie'}
+
+        >>> find_array_element_by_id(dict_list, 3)
+        {'id': 3, 'name': 'Charlie'}
+
+        >>> find_array_element_by_id([], 1) is None
+        True
+    """
+    for item in current:
+        if item.get("id") == array_element_id:
+            return item
+    return current[-1] if current else None
