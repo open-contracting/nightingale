@@ -169,6 +169,9 @@ class OCDSDataMapper:
                     else:
                         nested_dict[last_key] = value
                 else:
+                    subpath = "/" + "/".join(keys)
+                    if schema.get(subpath, {}).get("type") == "array" and not isinstance(value, list):
+                        value = [value]
                     nested_dict[last_key] = value
 
         if not result:
