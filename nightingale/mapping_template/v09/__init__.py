@@ -111,6 +111,8 @@ class MappingTemplate:
         return elements
 
     def read_extenions_info(self):
+        if EXTENSIONS_SHEET not in self.wb.sheetnames:
+            return []
         sheet = self.wb[EXTENSIONS_SHEET]
         headers = [(i, cell.value) for i, cell in enumerate(sheet[1])]  # Assuming the first row contains the headers
         data = []
@@ -188,7 +190,7 @@ class MappingTemplate:
         for mapping in self.get_mappings():
             if mapping["mapping"] == key:
                 element = self.get_element_by_mapping(key)
-                if element["publish"] or force_publish:
+                if element.get("publish", False) or force_publish:
                     result.append(mapping["path"])
         return result
 
