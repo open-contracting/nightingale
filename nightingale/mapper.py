@@ -141,7 +141,7 @@ class OCDSDataMapper:
         """
 
         # XXX: some duplication in code present maybe refactoring needed
-        def set_nested_value(nested_dict, keys, value, schema, add_new=False):
+        def set_nested_value(nested_dict, keys, value, schema, add_new=False, append_once=False):
             value = self.map_codelist_value(keys, schema, codelists, value)
             for i, key in enumerate(keys[:-1]):
                 subpath = "/" + "/".join(keys[: i + 1])
@@ -150,19 +150,22 @@ class OCDSDataMapper:
                 if key not in nested_dict:
                     nested_dict[key] = [] if schema.get(subpath, {}).get("type") == "array" else {}
                 nested_dict = nested_dict[key]
-
             last_key = keys[-1]
             if isinstance(nested_dict, list):
                 nested_dict = self.shift_current_array(nested_dict, "/" + "/".join(keys), array_counters)
                 if add_new:
                     if last_key not in nested_dict:
                         nested_dict[last_key] = []
+                    if value in nested_dict[last_key] and append_once:
+                        return
                     nested_dict[last_key].append(value)
                 else:
                     nested_dict[last_key] = value
             else:
                 if last_key in nested_dict:
                     if isinstance(nested_dict[last_key], list) and add_new:
+                        if value in nested_dict[last_key] and append_once:
+                            return
                         nested_dict[last_key].append(value)
                     elif isinstance(nested_dict[last_key], dict):
                         nested_dict[last_key].update(value)
@@ -188,10 +191,9 @@ class OCDSDataMapper:
                     child_path = path[len(array_path) :]
                     last_key_name = keys[-1]
                     array_value = value
-
                     if path == array_path:
                         # case for /parties/roles
-                        set_nested_value(result, keys, value, flattened_schema, add_new=True)
+                        set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
                         continue
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
