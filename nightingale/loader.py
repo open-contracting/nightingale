@@ -16,8 +16,8 @@ class DataLoader:
     def load(self, selector):
         cursor = self.get_cursor()
         cursor.execute(selector)
-        logger.info(f"Loaded data from {self.config.connection}")
-        return [dict(row) for row in cursor.fetchall()]
+        # logger.info(f"Loaded data from {self.config.connection}")
+        return (dict(row) for row in cursor)
 
     def get_cursor(self):
         conn = self.get_connection()
