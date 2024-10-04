@@ -57,7 +57,7 @@ class OCDSDataMapper:
 
         logger.info("MappingTemplate data loaded")
         data = loader.load(config.selector)
-        logger.info("Source data is loaded...")
+        logger.info("Start fetching rows from datasource")
         if validate_mapping:
             logger.info("Validating mapping template...")
             validator = MappingTemplateValidator(loader, self.mapping)
@@ -83,10 +83,12 @@ class OCDSDataMapper:
         curr_release = {}
         array_counters = {}
         mapped = []
+        count = 0
 
         ocid_mapping = mapping.get_ocid_mapping()
         for row in data:
             ocid = row.get(ocid_mapping, "")
+
             if not ocid:
                 logger.warning(f"No OCID found in row: {row}. Skipping.")
                 continue
@@ -101,6 +103,8 @@ class OCDSDataMapper:
             curr_release = self.transform_row(
                 row, mapping, mapping.get_schema(), curr_release, array_counters=array_counters, codelists=codelists
             )
+            count += 1
+            logger.info(f"Processed {count} rows")
 
         if curr_release:
             self.finish_release(curr_ocid, curr_release, mapped)
@@ -143,6 +147,9 @@ class OCDSDataMapper:
         # XXX: some duplication in code present maybe refactoring needed
         def set_nested_value(nested_dict, keys, value, schema, add_new=False, append_once=False):
             value = self.map_codelist_value(keys, schema, codelists, value)
+            last_key = keys[-1]
+            keys_path = "/" + "/".join(keys)
+
             for i, key in enumerate(keys[:-1]):
                 subpath = "/" + "/".join(keys[: i + 1])
                 if isinstance(nested_dict, list):
@@ -150,9 +157,11 @@ class OCDSDataMapper:
                 if key not in nested_dict:
                     nested_dict[key] = [] if schema.get(subpath, {}).get("type") == "array" else {}
                 nested_dict = nested_dict[key]
-            last_key = keys[-1]
+            subpath = "/" + "/".join(keys[:-1])
+            if schema.get(keys_path, {}).get("type") == "array" and isinstance(nested_dict, list) and nested_dict:
+                nested_dict = self.shift_current_array(nested_dict, subpath, array_counters)
             if isinstance(nested_dict, list):
-                nested_dict = self.shift_current_array(nested_dict, "/" + "/".join(keys), array_counters)
+                nested_dict = self.shift_current_array(nested_dict, keys_path, array_counters)
                 if add_new:
                     if last_key not in nested_dict:
                         nested_dict[last_key] = []
@@ -179,6 +188,7 @@ class OCDSDataMapper:
 
         if not result:
             result = {}
+
         for flat_col, value in input_data.items():
             if not value:
                 continue
