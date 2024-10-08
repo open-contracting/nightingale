@@ -33,7 +33,7 @@ class TestDataLoader(unittest.TestCase):
 
     def test_load(self):
         data = self.loader.load("SELECT * FROM test_table")
-        self.assertEqual(data, [{"column1": "value1"}])
+        self.assertEqual(list(data), [{"column1": "value1"}])
 
 
 if __name__ == "__main__":
