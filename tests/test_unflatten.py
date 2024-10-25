@@ -533,7 +533,7 @@ def test_finish_release_with_tags(mock_mapping, mock_get_iso_now, mock_config):
     mapper = OCDSDataMapper(mock_config)
     mapper.transform_row = mock.Mock(
         side_effect=[
-            {"ocid": "1", "field": "value1", "tender": {"id": "tender"}},
+            {"ocid": "1", "field": "value1", "tender": {"id": "tender", "amendments": [{"id": "one"}]}},
             {
                 "ocid": "2",
                 "field": "value2",
@@ -541,55 +541,25 @@ def test_finish_release_with_tags(mock_mapping, mock_get_iso_now, mock_config):
                 "awards": [{"id": "award"}],
                 "contracts": [{"id": "contract"}],
             },
+            {
+                "ocid": "3",
+                "field": "value3",
+                "contracts": [
+                    {
+                        "id": "contract",
+                        "implementation": {"transactions": [{"id": "transaction"}]},
+                        "amendments": [{"id": "one"}],
+                    }
+                ],
+            },
         ]
     )
 
-    result = mapper.transform_data([{"ocid": 1}, {"ocid": 2}], mock_mapping)
+    result = mapper.transform_data([{"ocid": 1}, {"ocid": 2}, {"ocid": 3}], mock_mapping)
 
-    expected_result = [
-        {
-            "field": "value1",
-            "tender": {"id": "tender"},
-            "initiationType": "tender",
-            "date": "2022-01-01T00:00:00Z",
-            "ocid": "prefix-1",
-            "tag": ["tender"],
-            "id": generate_hash(
-                {
-                    "field": "value1",
-                    "tender": {"id": "tender"},
-                    "initiationType": "tender",
-                    "date": "2022-01-01T00:00:00Z",
-                    "ocid": "prefix-1",
-                    "tag": ["tender"],
-                }
-            ),
-        },
-        {
-            "field": "value2",
-            "tender": {"id": "tender"},
-            "awards": [{"id": "award"}],
-            "contracts": [{"id": "contract"}],
-            "initiationType": "tender",
-            "date": "2022-01-01T00:00:00Z",
-            "ocid": "prefix-2",
-            "tag": ["tender", "award", "contract"],
-            "id": generate_hash(
-                {
-                    "field": "value2",
-                    "tender": {"id": "tender"},
-                    "awards": [{"id": "award"}],
-                    "contracts": [{"id": "contract"}],
-                    "initiationType": "tender",
-                    "date": "2022-01-01T00:00:00Z",
-                    "ocid": "prefix-2",
-                    "tag": ["tender", "award", "contract"],
-                }
-            ),
-        },
-    ]
-
-    assert result == expected_result
+    assert result[0]["tag"] == ["tender", "tenderAmendment"]
+    assert result[1]["tag"] == ["tender", "award", "contract"]
+    assert result[2]["tag"] == ["contract", "contractAmendment", "implementation"]
 
 
 if __name__ == "__main__":

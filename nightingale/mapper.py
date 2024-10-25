@@ -105,7 +105,7 @@ class OCDSDataMapper:
         self.tag_initiation_type(curr_release)
         self.date_release(curr_release)
         self.tag_ocid(curr_release, curr_ocid)
-        self.tag_tags(curr_release)
+        self.generate_tags(curr_release)
         self.make_release_id(curr_release)
         logger.info(f"Release mapped: {curr_release['ocid']}")
         mapped.append(curr_release)
@@ -260,15 +260,39 @@ class OCDSDataMapper:
         """
         curr_row["ocid"] = self.produce_ocid(curr_ocid)
 
-    def tag_tags(self, curr_row) -> None:
-        if "tag" not in curr_row:
-            curr_row["tag"] = []
-        if "tender" in curr_row:
-            curr_row["tag"].append("tender")
-        if "awards" in curr_row:
-            curr_row["tag"].append("award")
-        if "contracts" in curr_row:
-            curr_row["tag"].append("contract")
+    def generate_tags(self, release_data) -> None:
+        """
+        Generate the release tag(s) based on the current release data,
+        excluding 'update' tags, 'compiled' tag, and 'cancellation' tags,
+        and without considering prior releases.
+
+        :param release_data: The current release data (dict).
+        :return: A list of tags (list of str).
+        """
+        release_data["tag"] = []
+
+        if "planning" in release_data and release_data["planning"]:
+            release_data["tag"].append("planning")
+
+        if "tender" in release_data and release_data["tender"]:
+            release_data["tag"].append("tender")
+            if "amendments" in release_data["tender"] and release_data["tender"]["amendments"]:
+                release_data["tag"].append("tenderAmendment")
+
+        if "awards" in release_data and release_data["awards"]:
+            release_data["tag"].append("award")
+
+        implementation_present = False
+        if "contracts" in release_data and release_data["contracts"]:
+            release_data["tag"].append("contract")
+            if any("amendments" in contract and contract["amendments"] for contract in release_data["contracts"]):
+                release_data["tag"].append("contractAmendment")
+            for contract in release_data["contracts"]:
+                if "implementation" in contract and contract["implementation"]:
+                    implementation_present = True
+                    break
+        if implementation_present:
+            release_data["tag"].append("implementation")
 
     def remove_empty_id_arrays(self, data: Any) -> Any:
         """
