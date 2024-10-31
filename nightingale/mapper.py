@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 class OCDSDataMapper:
     """
     Maps data from a source to the OCDS format.
+
+    :param config: Configuration object containing settings for the mapper.
+    :type config: Config
     """
 
     def __init__(self, config: Config):
@@ -22,6 +25,7 @@ class OCDSDataMapper:
         Initialize the OCDSDataMapper.
 
         :param config: Configuration object containing settings for the mapper.
+        :type config: Config
         """
         self.config = config
         self.mapping = MappingTemplate(config.mapping)
@@ -34,7 +38,9 @@ class OCDSDataMapper:
         Produce an OCID based on the given value.
 
         :param value: The value to use for generating the OCID.
+        :type value: str
         :return: The produced OCID.
+        :rtype: str
         """
         prefix = self.config.mapping.ocid_prefix
         return f"{prefix}-{value}"
@@ -44,7 +50,9 @@ class OCDSDataMapper:
         Map data from the loader to the OCDS format.
 
         :param loader: Data loader object.
+        :type loader: Any
         :return: List of mapped release dictionaries.
+        :rtype: list[dict[str, Any]]
         """
         config = self.config.mapping
 
@@ -71,6 +79,7 @@ class OCDSDataMapper:
         """
         curr_ocid = ""
         curr_release = {}
+        curr_release_dates = set()
         array_counters = {}
         mapped = []
         count = 0
@@ -85,25 +94,32 @@ class OCDSDataMapper:
             if not curr_ocid:
                 curr_ocid = ocid
             if curr_ocid != ocid:
-                self.finish_release(curr_ocid, curr_release, mapped)
+                self.finish_release(curr_ocid, curr_release, mapped, max(curr_release_dates))
                 curr_ocid = ocid
                 curr_release = {}
                 array_counters = {}
+                curr_release_dates = set()
 
             curr_release = self.transform_row(
-                row, mapping, mapping.get_schema(), curr_release, array_counters=array_counters, codelists=codelists
+                row,
+                mapping,
+                mapping.get_schema(),
+                curr_release,
+                array_counters=array_counters,
+                codelists=codelists,
+                curr_release_dates=curr_release_dates,
             )
             count += 1
             logger.info(f"Processed {count} rows")
 
         if curr_release:
-            self.finish_release(curr_ocid, curr_release, mapped)
+            self.finish_release(curr_ocid, curr_release, mapped, max(curr_release_dates))
         return mapped
 
-    def finish_release(self, curr_ocid, curr_release, mapped):
+    def finish_release(self, curr_ocid, curr_release, mapped, release_date):
         curr_release = self.remove_empty_id_arrays(curr_release)
         self.tag_initiation_type(curr_release)
-        self.date_release(curr_release)
+        self.date_release(curr_release, release_date)
         self.tag_ocid(curr_release, curr_ocid)
         self.generate_tags(curr_release)
         self.make_release_id(curr_release)
@@ -118,15 +134,24 @@ class OCDSDataMapper:
         result: dict | None = None,
         array_counters: dict | None = None,
         codelists: CodelistsMapping | None = None,
+        curr_release_dates: set[str] | None = None,
+        result: dict | None = None,
+        array_counters: dict | None = None,
+        codelists: CodelistsMapping | None = None,
     ) -> dict:
         """
         Transform a single row of input data to the OCDS format.
 
         :param input_data: Dictionary of input data.
+        :type input_data: dict[Any, Any]
         :param mapping_config: Mapping configuration object.
+        :type mapping_config: MappingTemplate
         :param flattened_schema: Flattened schema dictionary.
+        :type flattened_schema: dict[str, Any]
         :param result: Existing result dictionary to update.
+        :type result: dict, optional
         :return: Transformed row dictionary.
+        :rtype: dict
         """
 
         # XXX: some duplication in code present maybe refactoring needed
@@ -145,6 +170,7 @@ class OCDSDataMapper:
             subpath = "/" + "/".join(keys[:-1])
             if schema.get(keys_path, {}).get("type") == "array" and isinstance(nested_dict, list) and nested_dict:
                 nested_dict = self.shift_current_array(nested_dict, subpath, array_counters)
+
             if isinstance(nested_dict, list):
                 nested_dict = self.shift_current_array(nested_dict, keys_path, array_counters)
                 if add_new:
@@ -173,6 +199,7 @@ class OCDSDataMapper:
 
         if not result:
             result = {}
+        datetime_paths = self.mapping.get_datetime_fields()
 
         for flat_col, value in input_data.items():
             if not value:
@@ -181,6 +208,8 @@ class OCDSDataMapper:
             if not paths:
                 continue
             for path in paths:
+                if path in datetime_paths and value:
+                    curr_release_dates.add(value)
                 keys = path.strip("/").split("/")
                 if array_path := mapping_config.get_containing_array_path(path):
                     child_path = path[len(array_path) :]
@@ -230,23 +259,27 @@ class OCDSDataMapper:
         Generate and set a unique ID for the release based on its content.
 
         :param curr_row: The current release row dictionary.
+        :type curr_row: dict
         """
         id_ = dict_hash.sha256(curr_row)
         curr_row["id"] = id_
 
-    def date_release(self, curr_row: dict) -> None:
+    def date_release(self, curr_row: dict, curr_date: Optional[str]) -> None:
         """
         Set the release date to the current date and time.
 
         :param curr_row: The current release row dictionary.
+        :type curr_row: dict
         """
-        curr_row["date"] = get_iso_now()
+        date = curr_date or get_iso_now()
+        curr_row["date"] = date
 
     def tag_initiation_type(self, curr_row: dict) -> None:
         """
         Tag the initiation type of the release as 'tender' if applicable.
 
         :param curr_row: The current release row dictionary.
+        :type curr_row: dict
         """
         if "tender" in curr_row and "initiationType" not in curr_row:
             curr_row["initiationType"] = "tender"
@@ -256,7 +289,9 @@ class OCDSDataMapper:
         Set the OCID for the release.
 
         :param curr_row: The current release row dictionary.
+        :type curr_row: dict
         :param curr_ocid: The OCID value to set.
+        :type curr_ocid: str
         """
         curr_row["ocid"] = self.produce_ocid(curr_ocid)
 
@@ -299,6 +334,7 @@ class OCDSDataMapper:
         Recursively remove arrays that do not contain an 'id' field.
 
         :param data: The data dictionary to process.
+        :type data: dict[str, Any]
         """
 
         return remove_dicts_without_id(data)
