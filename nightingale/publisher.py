@@ -44,8 +44,10 @@ class DataPublisher:
             published_date=self.date,
             extensions=self.get_extensions(),
         )
-        if self.config.version:
-            kwargs["version"] = self.config.version
+        for key in ("version", "license", "publicationPolicy"):
+            if value := getattr(self.config, key, None):
+                kwargs[key] = value
+
         return package_releases(data, **kwargs)
 
     def get_publisher(self):

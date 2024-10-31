@@ -25,6 +25,8 @@ class Publishing:
     publisher_uid: str = ""
     publisher_scheme: str = ""
     publisher_uri: str = ""
+    license: str = ""
+    publicationPolicy: str = ""
 
 
 @dataclass(frozen=True)
