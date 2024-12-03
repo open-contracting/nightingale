@@ -123,9 +123,9 @@ def run(
             "codelists": codelists_file or config_data["mapping"].get("codelists"),
             "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
             "selector": selector_content,
-            "force_publish": force_publish
-            if force_publish is not None
-            else config_data["mapping"].get("force_publish", False),
+            "force_publish": (
+                force_publish if force_publish is not None else config_data["mapping"].get("force_publish", False)
+            ),
         }
         config_data["publishing"] = {
             "publisher": publisher or config_data["publishing"]["publisher"],
