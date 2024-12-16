@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 
 from ocdskit.combine import package_releases
 
-from .utils import get_iso_now, produce_package_name
+from utils import get_iso_now, produce_package_name
 
 
 class DataPublisher:

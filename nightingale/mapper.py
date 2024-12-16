@@ -1,12 +1,13 @@
 import logging
+from datetime import datetime
 from typing import Any, Optional
 
 import dict_hash
 
-from .codelists import CodelistsMapping
-from .config import Config
-from .mapping_template.v09 import MappingTemplate, MappingTemplateValidator
-from .utils import get_iso_now, is_new_array, remove_dicts_without_id
+from codelists import CodelistsMapping
+from config import Config
+from mapping_template.v09 import MappingTemplate, MappingTemplateValidator
+from utils import get_iso_now, is_new_array, remove_dicts_without_id
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +96,7 @@ class OCDSDataMapper:
             if not curr_ocid:
                 curr_ocid = ocid
             if curr_ocid != ocid:
+                logger.info(f"Finishing release with {count} rows")
                 self.finish_release(curr_ocid, curr_release, mapped)
                 curr_ocid = ocid
                 curr_release = {}
@@ -104,9 +106,10 @@ class OCDSDataMapper:
                 row, mapping, mapping.get_schema(), curr_release, array_counters=array_counters, codelists=codelists
             )
             count += 1
-            logger.info(f"Processed {count} rows")
+            # logger.info(f"Processed {count} rows")
 
         if curr_release:
+            logger.info(f"Finishing release with {count} rows")
             self.finish_release(curr_ocid, curr_release, mapped)
         return mapped
 
@@ -189,6 +192,12 @@ class OCDSDataMapper:
         if not result:
             result = {}
 
+        skip_criteria_processing = False
+
+        if result:
+            if result.get("tender", {}).get("selectionCriteria", {}).get("criteria", None):
+                skip_criteria_processing = True
+
         for flat_col, value in input_data.items():
             if not value:
                 continue
@@ -196,17 +205,55 @@ class OCDSDataMapper:
             if not paths:
                 continue
             for path in paths:
+                if "/tender/selectionCriteria/criteria" in path and skip_criteria_processing:
+                    continue
                 keys = path.strip("/").split("/")
                 if array_path := mapping_config.get_containing_array_path(path):
                     child_path = path[len(array_path) :]
                     last_key_name = keys[-1]
                     array_value = value
                     if path == array_path:
-                        # case for /parties/roles
-                        set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
-                        continue
-                    elif array_counters is None:
-                        array_counters = {}
+                        if "criteria" in path:
+                            if child_path != "criteria":
+                                if result["tender"].get("selectionCriteria", None):
+                                    if len(result["tender"]["selectionCriteria"]["criteria"]) == 0:
+                                        result["tender"]["selectionCriteria"]["criteria"].append({})
+                                        result["tender"]["selectionCriteria"]["criteria"][-1][last_key_name] = [value]
+                                        continue
+                                    else:
+                                        continue_to_next = False
+                                        for index, criterion in enumerate(
+                                                result["tender"]["selectionCriteria"]["criteria"]):
+                                            if last_key_name not in criterion.keys():
+                                                if continue_to_next:
+                                                    break
+                                                result["tender"]["selectionCriteria"]["criteria"][index][
+                                                    last_key_name] = [value]
+                                                continue_to_next = True
+                                        if continue_to_next:
+                                            continue
+                                else:
+                                    # case for /parties/roles
+                                    set_nested_value(result, keys, value, flattened_schema, add_new=True,
+                                                     append_once=True)
+                                    continue
+                            else:
+                                set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
+                                continue
+                        else:
+                            set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
+                            continue
+                    elif "criteria" in path:
+                        if child_path != "criteria":
+                            if result["tender"].get("selectionCriteria", None):
+                                if len(result["tender"]["selectionCriteria"]["criteria"]) == 0:
+                                    result["tender"]["selectionCriteria"]["criteria"].append({})
+                                else:
+                                    for index, criterion in enumerate(
+                                            result["tender"]["selectionCriteria"]["criteria"]):
+                                        if last_key_name not in criterion.keys():
+                                            result["tender"]["selectionCriteria"]["criteria"].append({})
+                                            break
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
                             array_counters[array_path] = array_value
@@ -215,6 +262,7 @@ class OCDSDataMapper:
                         if last_key_name == "id":
                             array_counters[array_path] = array_value
                             set_nested_value(result, keys[:-1], {}, flattened_schema, True)
+                        set_nested_value(result, keys[:-1], [{}], flattened_schema)
 
                     current = result
                     for i, key in enumerate(keys[:-1]):
@@ -224,7 +272,24 @@ class OCDSDataMapper:
                             current[key] = [] if is_array else {}
                         current = current[key]
                         if is_array:
-                            current = self.shift_current_array(current, current_path, array_counters)
+                            if "criteria" in path:
+                                if child_path != "criteria":
+                                    if result["tender"].get("selectionCriteria", None):
+                                        for index, criterion in enumerate(
+                                                result["tender"]["selectionCriteria"]["criteria"]):
+                                            if last_key_name not in criterion.keys() or len(criterion.keys()) == 0:
+                                                if last_key_name != "minimum":
+                                                    current = result["tender"]["selectionCriteria"]["criteria"][index]
+                                                    break
+                                                else:
+                                                    if len(criterion.keys()) == 0 or criterion.get("type",
+                                                                                                   "") == "economic":
+                                                        current = result["tender"]["selectionCriteria"]["criteria"][
+                                                            index]
+                                                        break
+
+                            else:
+                                current = self.shift_current_array(current, current_path, array_counters)
 
                     value = self.map_codelist_value(keys, flattened_schema, codelists, value)
                     if isinstance(current, list):
@@ -257,6 +322,30 @@ class OCDSDataMapper:
         :param curr_row: The current release row dictionary.
         :type curr_row: dict
         """
+
+        # if not curr_row["awards"] and not curr_row["contracts"]:
+        #     curr_row["date"] = curr_row["tender"]["awardPeriod"]["startDate"]
+        #     return
+        #
+        # if curr_row["tender"] and curr_row["awards"] and not curr_row["contracts"]:
+        #     curr_row["date"] = curr_row["awards"][0]["date"]
+        #     return
+        #
+        # if curr_row["tender"] and curr_row["contracts"] and curr_row["awards"]:
+        #     oldest_start_date = None
+        #     if isinstance(curr_row["contracts"], list):
+        #         for contract in curr_row["contracts"]:
+        #             if contract.get("period", None):
+        #                 start_date = contract['period']['startDate']
+        #                 parsed_date = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
+        #                 if oldest_start_date is None or parsed_date < oldest_start_date:
+        #                     oldest_start_date = parsed_date
+        #     elif isinstance(curr_row["contracts"], dict):
+        #         oldest_start_date = datetime.fromisoformat(curr_row["contracts"]['period']['startDate'].replace("Z", "+00:00"))
+        #
+        #     curr_row["date"] = oldest_start_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        #     return
+
         curr_row["date"] = get_iso_now()
 
     def tag_initiation_type(self, curr_row: dict) -> None:

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import simplejson as json
 
-from .utils import produce_package_name
+from utils import produce_package_name
 
 
 def new_name(package: dict | list) -> str:

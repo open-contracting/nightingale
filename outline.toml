@@ -1,5 +1,5 @@
 [datasource]
-connection = '/home/ira_shevchenko_local/Desktop/pdx/pdx_ocds_normalizer/database_client.db'
+connection = '/home/ira_shevchenko_local/Desktop/pdx/pdx_ocds_normalizer/database_client-02-12.db'
 
 [mapping]
 file = '/home/ira_shevchenko_local/Desktop/pdx/nightingale/mapping.xlsx'
@@ -8,8 +8,19 @@ ocid_prefix = 'ocds-ptecst'
 force_publish = true
 # BuySpeed/AlternateId (has 8 characters and starts with 3 or 2) = SAP/Purchasing Document = SAP PO/Purchasing Document = B2G/Contract Number = TO/Contract Number
 selector = """
+WITH AggregatedPO AS (
+    SELECT BPP."Alternate Id.1"       AS Alternate_Id,
+       POLR."Purchasing Document" as Purchasing_doc,
+       MIN(POLR."Created On")     AS Min_Created_On,
+       MAX(POLR."Delivery Date")  AS Max_Delivery_Date
+FROM [BuySpeed Project Projects] as BPP
+         INNER JOIN "PO Listing Report" as POLR
+                    ON BPP."Alternate Id.1" = POLR."Outline agreement"
+GROUP BY BPP."Alternate Id.1", POLR."Purchasing Document"
+)
 SELECT
   -- release
+  distinct
   BPP."REQ_NBR" AS "Requisition Header Table (REQ_NBR)",
   BPP."LANGUAGE" AS "GENERAL (LANGUAGE)",
   BPP."CURRENCY" AS "GENERAL (CURRENCY)",
@@ -19,14 +30,16 @@ SELECT
   BPP."Bid Number Scheme" AS "Bid Header Table (Bid Number Scheme)",
   BPP."SHORT_DESC" AS "Requisition Header Table (SHORT_DESC)",
   BPP."Req Header Column 5 Value" as "Req Header Custom Columns (Req Header Column 5 Value)",
-  BPP."Current Header Status and Descriptions" AS "Bid Header Table (Current Header Status and Descriptions)",
+  CASE
+      WHEN date(BPP."PO - In Progress Date") < date('now') THEN "complete"
+      WHEN date(CLR.[Validity Per. Start]) < date('now') THEN "complete"
+      ELSE BPP."Current Header Status and Descriptions"
+  END AS "Bid Header Table (Current Header Status and Descriptions)",
   QPB."Estimate Amount" as "Quotes per bid (Estimate Amount)",
 
   -- selection criteria
   BPP."Bid Header Column 11 Value" as "Bid Header Custom Columns (Bid Header Column 11 Value)",
-  BPP."Bid Header Column 12 Value" as "Bid Header Custom Columns (Bid Header Column 12 Value)",
   BPP."Bid Header Column 13 Value" as "Bid Header Custom Columns (Bid Header Column 13 Value)",
-  BPP."Bid Header Column 14 Value" as "Bid Header Custom Columns (Bid Header Column 14 Value)",
   BPP."TECHNICAL 1" as "Prequalification Type (TECHNICAL 1)",
   BPP."DESCRIPTION 1" as "Prequalification Type (DESCRIPTION 1)",
   BPP."APPLIES TO 1" as "Prequalification Type (APPLIES TO 1)",
@@ -36,6 +49,7 @@ SELECT
   BPP."DESCRIPTION 2" as "Prequalification Type (DESCRIPTION 2)",
   BPP."APPLIES TO 2" as "Prequalification Type (APPLIES TO 2)",
   BPP."VERIFICATION METHOD 2" as "Prequalification Type (VERIFICATION METHOD 2)",
+  BPP."Bid Header Column 12 Value" as "Bid Header Custom Columns (Bid Header Column 12 Value)",
 
   BPP."TECHNICAL 3" as "Prequalification Type (TECHNICAL 3)",
   BPP."DESCRIPTION 3" as "Prequalification Type (DESCRIPTION 3)",
@@ -46,6 +60,7 @@ SELECT
   BPP."DESCRIPTION 4" as "Prequalification Type (DESCRIPTION 4)",
   BPP."APPLIES TO 4" as "Prequalification Type (APPLIES TO 4)",
   BPP."VERIFICATION METHOD 4" as "Prequalification Type (VERIFICATION METHOD 4)",
+  BPP."Bid Header Column 14 Value" as "Bid Header Custom Columns (Bid Header Column 14 Value)",
 
   BPP."SUITABILITY 5" as "Prequalification Type (SUITABILITY 5)",
   BPP."DESCRIPTION 5" as "Prequalification Type (DESCRIPTION 5)",
@@ -72,13 +87,14 @@ SELECT
         WHEN BPP."Procurement Method" IN ('selective', 'open') THEN 'electronicSubmission'
         WHEN BPP."Procurement Method" IN ('direct', 'limited') THEN 'written'
         ELSE ''
-   END AS "Bid Header Custom Columns (SUBMISSIONMETHOD)",
+  END AS "Bid Header Custom Columns (SUBMISSIONMETHOD)",
 
   -- bids
   -- bid value is missing
   QPB."Quote Number" as "Quotes per bid (Quote Number)",
   QPB."Entry Date" as "Quotes per bid (Entry Date)",
   QPB."Vendor Number" as "Quotes per bid (Vendor Number)",
+  QPB."Tenderer ID" as "Vendor (TENDERER ID)",
   QPB."Vendor Name" as "Quotes per bid (Vendor Name)",
   QPB."BID SUBMISSION TYPE" as "Quotes per bid (BID SUBMISSION TYPE)",
   QPB."BID CLASSIFICATION SCHEME" as "Quotes per bid (BID CLASSIFICATION SCHEME)",
@@ -101,8 +117,12 @@ SELECT
   POLR."Purchasing Document" AS "PO Listing Report (Purchasing Document)",
   POLR."CONTRACT ITEM ID" AS "PO Listing Report (CONTRACT ITEM ID)",
   POLR."Item" AS "PO Listing Report (Item)",
-  CLR."Original Con Amt." AS "Contract Listing Report (Original Con Amt.)",
-  CLR."FULL CONTRACT AMOUNT" as "Contract Listing Report (FULL CONTRACT AMOUNT)",
+  CASE
+        WHEN BPP."PO Header Column 17 Value" IS NOT NULL AND BPP."PO Header Column 17 Value" != '' THEN BPP."PO Header Column 17 Value"
+        WHEN CLR."Original Con Amt." IS NOT NULL AND CLR."Original Con Amt." != '' THEN CLR."Original Con Amt."
+        ELSE ''
+  END AS "Contract Listing Report (Original Con Amt.)",
+  CLR."FULL CONTRACT AMOUNT" AS "Contract Listing Report (FULL CONTRACT AMOUNT)",
   CLR."Original Con Amt. CURRENCY" AS "Contract Listing Report (Original Con Amt. CURRENCY)",
 
   -- award/docs
@@ -119,6 +139,7 @@ SELECT
 
   -- supplier
   BPP."Vendor Nbr" AS "Vendor (Vendor Nbr)",
+  BPP."Vendor ID" AS "Vendor (VENDOR ID)",
   BPP."VENDOR ADDITIONAL IDENT SCHEME" as "Vendor (VENDOR ADDITIONAL IDENT SCHEME)",
   BPP."Vendor Name" AS "Vendor (Vendor Name)",
   BPP."Vendor Tag" AS "Vendor (Vendor Tag)",
@@ -136,7 +157,7 @@ SELECT
   B2G."Primary Certification Type" AS "Contract Status Report (Primary Certification Type)",
   PCT.title AS "Primary certification types (title)",
   PCT.description AS "Primary certification types (description)",
-  B2G."OBSERVATION ID" as "Contract Status Report (OBSERVATION ID)",
+  B2G."OBSERVATION ID" || B2G."Date Paid" as "Contract Status Report (OBSERVATION ID)",
   B2G."Date Paid" AS "Contract Status Report (Date Paid)",
   B2G."Amount Paid" as "Contract Status Report (Amount Paid)",
   B2G."B2G SUBCONTRACTOR ID" AS "Contract Status Report (B2G SUBCONTRACTOR ID)",
@@ -145,9 +166,9 @@ SELECT
   B2G."SUBCONTRACTOR TAG" AS "Vendor (SUBCONTRACTOR TAG)",
   B2G."Business Name" as "Contract Status Report (Business Name)",
   B2G."OBSERVATION AMOUNT" as "Contract Status Report (OBSERVATION AMOUNT)",
-  UC.code as "UNIT CLASSIFICATION (CODE)",
-  UC.name as "UNIT CLASSIFICATION (NAME)",
-  UC.scheme as "UNIT CLASSIFICATION (SCHEME)",
+  UC.code as "Order Unit (UNCEFACT) (CODE)",
+  UC.name as "Order Unit (UNCEFACT) (TITLE)",
+  UC.scheme as "Order Unit (UNCEFACT) (SCHEME)",
   POLR."UNIT AMOUNT" as "PO Listing Report (UNIT AMOUNT)",
 
   -- TOP."SUBCONTRACTOR ID" AS "Task Orders for Parks (SUBCONTRACTOR ID)",
@@ -156,10 +177,10 @@ SELECT
 
 
   -- purchase orders
-  POT."Purchasing Document" AS "Purchase Orders (Purchasing Document)",
-  POT."Short Text" AS "Purchase Orders (Short Text)",
-  POT."Created On" AS "Purchase Orders (Created On)",
-  POT."Delivery Date" AS "Purchase Orders (Delivery Date)",
+  POLR."Purchasing Document ITEM 10" AS "Purchase Orders (PURCHASING DOCUMENT ITEM 10)",
+  POLR."Short Text ITEM 10" AS "Purchase Orders (SHORT TEXT ITEM 10)",
+  AggPO.Min_Created_On AS "Purchase Orders (CREATED ON MIN)",
+  AggPO.Max_Delivery_Date AS "Purchase Orders (DELIVERY DATE MAX)",
 
   POLR."Order Quantity" AS "PO Listing Report (Order Quantity)",
   --implementation
@@ -211,6 +232,12 @@ SELECT
   B2G."Total Retained Payments" AS "Contract Status Report (Total Retained Payments)",
   B2G."Additional Certifications" AS "Contract Status Report (Additional Certifications)",
 
+  --contracts/milestones
+  CLR."Milestone ID" AS "Contract Listing Report (CONTRACT MILESTONE ID)",
+  RDTE.code AS "Contract Listing Report (Releases to Dte)",
+  RDTE.title AS "Releases to Dte (title)",
+  RDTE.description AS "Releases to Dte (description)",
+
   --shared
   QPB."Estimate Amount Currency" as "Quotes per bid (Estimate Amount Currency)",
 
@@ -259,24 +286,32 @@ INNER JOIN [Contract Listing Report] as CLR
   ON BPP."Alternate Id.1" = CLR.[Purchasing Document]
 INNER JOIN "B2G Contract Status Report" AS B2G
   ON BPP."Alternate Id.1" = B2G."Contract Number"
-INNER JOIN "PO Listing Report" as POT
-  ON BPP."Alternate Id.1" = POT."Outline agreement" AND POT.Item = 10
 INNER JOIN "PO Listing Report" as POLR
   ON BPP."Alternate Id.1" = POLR."Outline agreement"
+INNER JOIN AggregatedPO AS AggPO
+    ON BPP."Alternate Id.1" = AggPO.Alternate_Id
+    AND AggPO.Purchasing_doc = POLR."Purchasing Document"
 LEFT JOIN "unit_classification" as UC ON POLR."Order Unit" = CASE
         WHEN UC.code = 'M4' THEN 'USD'
         WHEN UC.code = 'NAR' THEN 'EA'
   END
 LEFT JOIN "primary certification types" as PCT
-    on PCT.code = B2G."Primary Certification Type"
+    on B2G."Primary Certification Type" = PCT.code
 LEFT JOIN "material group nigp" as MGN
-    on MGN.code = POLR."Outline agreement"
+    on MGN.code = POLR."Material Group"
+LEFT JOIN "releases to Dte" as RDTE
+    on RDTE.code = CLR."Releases to Dte"
 -- LEFT JOIN "Task Orders for Parks" as TOP
   -- ON BPP."Alternate Id.1" = TOP."Contract Number"
--- WHERE
--- BPP."Bid Number" = "00001566" and
--- BPP."Alternate Id.1" = '30007665'
-
+ WHERE
+    -- BPP."Bid Number" = "00001566" AND
+   -- BPP."Alternate Id.1" = '30007043' -- milestones
+  -- BPP."REQ_NBR" = '131235'  -- currency troubles
+  -- BPP."REQ_NBR" = '121649' -- few transactions
+  BPP."REQ_NBR" = '121649' -- selectionCriteria
+ -- BPP."REQ_NBR" = '125981' -- list contracts
+-- AND
+-- BPP."Alternate Id.1" = "31001814"
   --AND
 --      CLR.[Purchasing Document] IS NOT NULL and CLR.[Purchasing Document] != '';
 """

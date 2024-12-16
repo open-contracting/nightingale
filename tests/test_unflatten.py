@@ -313,7 +313,7 @@ def mock_config():
                     "col6": "/object/lvl1/lvl2/array2/field1",
                     "col7": "/object/lvl1/lvl2/array2/id",
                 },
-                array_paths=["/lvl1/array"],
+                array_paths=["/object/lvl1/array1", "/object/lvl1/lvl2/array2"],
             ),
             {
                 "/object/lvl1/field": {"type": "string"},
@@ -333,17 +333,17 @@ def mock_config():
                         "field": "val1",
                         "array1": [
                             {
-                                "id": "val4",
                                 "field1": "val2",
-                                "field2": "val3"
+                                "field2": "val3",
+                                "id": "val4",
                             },
                         ],
                         "lvl2": {
                             "field": "val5",
                             "array2": [
                                 {
+                                    "field1": "val6",
                                     "id": "val7",
-                                    "field1": "val6"
                                 }
                             ]
                         }
@@ -356,7 +356,7 @@ def mock_config():
 )
 def test_transform_data(input_data, mapping_config, flattened_schema, result, expected_output, mock_config):
     mapper = OCDSDataMapper(mock_config)
-    result = mapper.transform_row(input_data, mapping_config, flattened_schema, result)
+    result = mapper.transform_row(input_data, mapping_config, flattened_schema, result, {})
     assert result == expected_output
 
 
