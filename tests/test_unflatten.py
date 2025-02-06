@@ -25,6 +25,10 @@ class MockMappingConfig:
     def get_containing_array_path(self, path):
         return get_longest_array_path(self.array_paths, path)
 
+@pytest.fixture(autouse=True)
+def mock_load_workbook():
+    with mock.patch("openpyxl.load_workbook", return_value=mock.MagicMock()):
+        yield
 
 @pytest.fixture
 def mock_config():
@@ -54,12 +58,12 @@ def mock_config():
             MockMappingConfig(
                 {
                     "flat_col1": "/object/field1",
-                    "flat_col_s": "/object/field2/string_field",
                     "flat_col2": "/object/field2/array_field/id",
                     "flat_col3": "/object/field2/array_field/array_field2/id",
                     "flat_col4": "/object/field2/array_field/array_field2/id",
                     "flat_col5": "/object/field2/array_field/id",
                     "flat_col6": "/object/field2/array_field/array_field2/id",
+                    "flat_col_s": "/object/field2/string_field",
                 },
                 array_paths=["/object/field2/array_field", "/object/field2/array_field/array_field2"],
             ),
@@ -288,6 +292,65 @@ def mock_config():
             },
             None,
             {"root": {"field1": "1", "array1": [{"id": "2", "field2": "3"}, {"id": "4"}]}},
+        ),
+        (
+            {
+                "col1": "val1",
+                "col2": "val2",
+                "col3": "val3",
+                "col4": "val4",
+                "col5": "val5",
+                "col6": "val6",
+                "col7": "val7"
+            },
+            MockMappingConfig(
+                {
+                    "col1": "/object/lvl1/field",
+                    "col2": "/object/lvl1/array1/field1",
+                    "col3": "/object/lvl1/array1/field2",
+                    "col4": "/object/lvl1/array1/id",
+                    "col5": "/object/lvl1/lvl2/field",
+                    "col6": "/object/lvl1/lvl2/array2/field1",
+                    "col7": "/object/lvl1/lvl2/array2/id",
+                },
+                array_paths=["/lvl1/array"],
+            ),
+            {
+                "/object/lvl1/field": {"type": "string"},
+                "/object/lvl1/array1": {"type": "array"},
+                "/object/lvl1/array1/field1": {"type": "string"},
+                "/object/lvl1/array1/field2": {"type": "string"},
+                "/object/lvl1/array1/id": {"type": "string"},
+                "/object/lvl1/lvl2/field": {"type": "string"},
+                "/object/lvl1/lvl2/array2": {"type": "array"},
+                "/object/lvl1/lvl2/array2/field1": {"type": "string"},
+                "/object/lvl1/lvl2/array2/id": {"type": "string"},
+            },
+            None,
+            {
+                "object": {
+                    "lvl1": {
+                        "field": "val1",
+                        "array1": [
+                            {
+                                "id": "val4",
+                                "field1": "val2",
+                                "field2": "val3"
+                            },
+                        ],
+                        "lvl2": {
+                            "field": "val5",
+                            "array2": [
+                                {
+                                    "id": "val7",
+                                    "field1": "val6"
+                                }
+                            ]
+                        }
+
+                    }
+                }
+            }
         ),
     ],
 )
