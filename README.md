@@ -5,7 +5,6 @@ Nightingale is a Python package designed to transform flat data from an SQLite d
 ## Table of Contents
 
 - [Features](#features)
-- [Installation](#installation)
 - [Usage](#usage)
 - [Documentation](#documentation)
 - [Contributing](#contributing)
@@ -16,17 +15,13 @@ Nightingale is a Python package designed to transform flat data from an SQLite d
 - Load data from SQLite databases and map data fields to the OCDS format based on configuration
 - Optionally package transformed data into OCDS release packages
 
-## Installation
-
-Please refer to the [Installation Guide](docs/installation.rst).
-
 ## Usage
 
 Please refer to the [Tutorial](docs/tutorial.rst) or read [Examples](docs/examples.rst)
 
 ## Documentation
 
-Comprehensive documentation for Nightingale, including an overview, installation guide, tutorial, examples, API reference, CLI reference, and configuration reference, is available in the `docs` directory.
+Comprehensive documentation for Nightingale, including an overview, tutorial, examples, API reference, CLI reference, and configuration reference, is available in the `docs` directory.
 
 To generate the HTML documentation:
 
