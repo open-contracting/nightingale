@@ -128,9 +128,6 @@ class OCDSDataMapper:
         :param result: Existing result dictionary to update.
         :return: Transformed row dictionary.
         """
-        if array_counters is None:
-            array_counters = {}
-
         # XXX: some duplication in code present maybe refactoring needed
         def set_nested_value(nested_dict, keys, value, schema, add_new=False, append_once=False):
             value = self.map_codelist_value(keys, schema, codelists, value)
@@ -192,6 +189,8 @@ class OCDSDataMapper:
                         # case for /parties/roles
                         set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
                         continue
+                    elif array_counters is None:
+                        array_counters = {}
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
                             array_counters[array_path] = array_value
@@ -199,7 +198,7 @@ class OCDSDataMapper:
                     else:
                         if last_key_name == "id":
                             array_counters[array_path] = array_value
-                        set_nested_value(result, keys[:-1], [{}], flattened_schema)
+                            set_nested_value(result, keys[:-1], {}, flattened_schema, True)
 
                     current = result
                     for i, key in enumerate(keys[:-1]):
@@ -223,7 +222,7 @@ class OCDSDataMapper:
     def shift_current_array(self, current, array_path, array_counters):
         if not current:
             current.append({})
-        return find_array_element_by_id(current, array_counters.get(array_path))
+        return find_array_element_by_id(current, array_counters.get(array_path) if array_counters else None)
 
     def make_release_id(self, curr_row: dict) -> None:
         """
