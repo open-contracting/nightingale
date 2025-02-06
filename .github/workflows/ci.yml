@@ -16,5 +16,5 @@ jobs:
           cache: pip
           cache-dependency-path: pyproject.toml
       - run: pip install .[test]
-      - run: coverage run --source=nightingale pytest -W error
+      - run: coverage run --source=nightingale -m pytest -W error
       - uses: coverallsapp/github-action@v2
