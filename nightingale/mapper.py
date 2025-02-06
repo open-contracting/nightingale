@@ -1,12 +1,13 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import dict_hash
 
-from .codelists import CodelistsMapping
-from .config import Config
-from .mapping_template.v09 import MappingTemplate, MappingTemplateValidator
-from .utils import get_iso_now, is_new_array, remove_dicts_without_id
+from nightingale.codelists import CodelistsMapping
+from nightingale.config import Config
+from nightingale.mapping_template.v09 import MappingTemplate
+from nightingale.mapping_template.validator import MappingTemplateValidator
+from nightingale.utils import get_iso_now, is_new_array, remove_dicts_without_id
 
 logger = logging.getLogger(__name__)
 
@@ -14,9 +15,6 @@ logger = logging.getLogger(__name__)
 class OCDSDataMapper:
     """
     Maps data from a source to the OCDS format.
-
-    :param config: Configuration object containing settings for the mapper.
-    :type config: Config
     """
 
     def __init__(self, config: Config):
@@ -24,7 +22,6 @@ class OCDSDataMapper:
         Initialize the OCDSDataMapper.
 
         :param config: Configuration object containing settings for the mapper.
-        :type config: Config
         """
         self.config = config
         self.mapping = MappingTemplate(config.mapping)
@@ -37,9 +34,7 @@ class OCDSDataMapper:
         Produce an OCID based on the given value.
 
         :param value: The value to use for generating the OCID.
-        :type value: str
         :return: The produced OCID.
-        :rtype: str
         """
         prefix = self.config.mapping.ocid_prefix
         return f"{prefix}-{value}"
@@ -49,9 +44,7 @@ class OCDSDataMapper:
         Map data from the loader to the OCDS format.
 
         :param loader: Data loader object.
-        :type loader: Any
         :return: List of mapped release dictionaries.
-        :rtype: list[dict[str, Any]]
         """
         config = self.config.mapping
 
@@ -67,17 +60,14 @@ class OCDSDataMapper:
         return self.transform_data(data, self.mapping, codelists=self.codelists)
 
     def transform_data(
-        self, data: list[dict[Any, Any]], mapping: MappingTemplate, codelists: Optional[CodelistsMapping] = None
+        self, data: list[dict[Any, Any]], mapping: MappingTemplate, codelists: CodelistsMapping | None = None
     ) -> list[dict[str, Any]]:
         """
         Transform the input data to the OCDS format.
 
         :param data: List of input data dictionaries.
-        :type data: list[dict[Any, Any]]
         :param mapping: Mapping configuration object.
-        :type mapping: MappingTemplate
         :return: List of transformed release dictionaries.
-        :rtype: list[dict[str, Any]]
         """
         curr_ocid = ""
         curr_release = {}
@@ -125,24 +115,21 @@ class OCDSDataMapper:
         input_data: dict[Any, Any],
         mapping_config: MappingTemplate,
         flattened_schema: dict[str, Any],
-        result: dict = None,
-        array_counters: dict = None,
-        codelists: Optional[CodelistsMapping] = None,
+        result: dict | None = None,
+        array_counters: dict | None = None,
+        codelists: CodelistsMapping | None = None,
     ) -> dict:
         """
         Transform a single row of input data to the OCDS format.
 
         :param input_data: Dictionary of input data.
-        :type input_data: dict[Any, Any]
         :param mapping_config: Mapping configuration object.
-        :type mapping_config: MappingTemplate
         :param flattened_schema: Flattened schema dictionary.
-        :type flattened_schema: dict[str, Any]
         :param result: Existing result dictionary to update.
-        :type result: dict, optional
         :return: Transformed row dictionary.
-        :rtype: dict
         """
+        if array_counters is None:
+            array_counters = {}
 
         # XXX: some duplication in code present maybe refactoring needed
         def set_nested_value(nested_dict, keys, value, schema, add_new=False, append_once=False):
@@ -243,7 +230,6 @@ class OCDSDataMapper:
         Generate and set a unique ID for the release based on its content.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         """
         id_ = dict_hash.sha256(curr_row)
         curr_row["id"] = id_
@@ -253,7 +239,6 @@ class OCDSDataMapper:
         Set the release date to the current date and time.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         """
         curr_row["date"] = get_iso_now()
 
@@ -262,7 +247,6 @@ class OCDSDataMapper:
         Tag the initiation type of the release as 'tender' if applicable.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         """
         if "tender" in curr_row and "initiationType" not in curr_row:
             curr_row["initiationType"] = "tender"
@@ -272,9 +256,7 @@ class OCDSDataMapper:
         Set the OCID for the release.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         :param curr_ocid: The OCID value to set.
-        :type curr_ocid: str
         """
         curr_row["ocid"] = self.produce_ocid(curr_ocid)
 
@@ -293,7 +275,6 @@ class OCDSDataMapper:
         Recursively remove arrays that do not contain an 'id' field.
 
         :param data: The data dictionary to process.
-        :type data: dict[str, Any]
         """
 
         return remove_dicts_without_id(data)

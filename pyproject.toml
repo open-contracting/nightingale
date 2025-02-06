@@ -36,6 +36,11 @@ test = [
     "coverage",
     "pytest",
 ]
+types = [
+    "mypy",
+    "types-openpyxl",
+    "types-simplejson",
+]
 
 [tool.setuptools.packages.find]
 exclude = [
@@ -46,4 +51,11 @@ exclude = [
 [tool.ruff]
 line-length = 119
 target-version = "py311"
+
+[tool.ruff.lint]
 ignore = ["E501"]
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+exclude = "(build|docs|tests)/"

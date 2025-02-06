@@ -6,11 +6,11 @@ import click
 import click_pathlib
 from pydantic import TypeAdapter
 
-from .config import Config
-from .loader import DataLoader
-from .mapper import OCDSDataMapper
-from .publisher import DataPublisher
-from .writer import DataWriter
+from nightingale.config import Config
+from nightingale.loader import DataLoader
+from nightingale.mapper import OCDSDataMapper
+from nightingale.publisher import DataPublisher
+from nightingale.writer import DataWriter
 
 logger = logging.getLogger(__name__)
 

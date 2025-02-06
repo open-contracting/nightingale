@@ -10,7 +10,7 @@ class MappingTemplateValidator:
         self.loader = loader
         self.mapping_template = mapping_template
 
-    def validate_data_elements(self):
+    def validate_data_elements(self) -> None:
         """Match columns in the database and in data elements from mapping template"""
         cursor = self.loader.get_cursor()
         # XXX: postgersql support?
@@ -24,7 +24,7 @@ class MappingTemplateValidator:
                 if column not in elements:
                     logger.warning(f"Column {table_name}/{column} is not described in data elements")
 
-    def validate_selector(self, row):
+    def validate_selector(self, row) -> None:
         """Check selected columns are used in mapping"""
         elements = self.mapping_template.get_data_elements()
         labels_for_mapping = [e["for_mapping"] for e in elements.values()]

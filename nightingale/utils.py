@@ -23,22 +23,16 @@ def get_iso_now():
     return now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-def is_new_array(array_counters, child_path, array_key, array_value, array_path):
+def is_new_array(array_counters: dict, child_path: str, array_key: str, array_value: str, array_path: str) -> bool:
     """
     Check if a new array should be created based on the given parameters.
 
     :param array_counters: Dictionary keeping track of array counters.
-    :type array_counters: dict
     :param child_path: The child path in the schema.
-    :type child_path: str
     :param array_key: The key in the array.
-    :type array_key: str
     :param array_value: The value associated with the array key.
-    :type array_value: str
     :param array_path: The path of the array.
-    :type array_path: str
     :return: True if a new array should be created, False otherwise.
-    :rtype: bool
 
     >>> array_counters = {'/object/field2/array_field': '1'}
     >>> child_path = '/id'
