@@ -128,6 +128,7 @@ class OCDSDataMapper:
         :param result: Existing result dictionary to update.
         :return: Transformed row dictionary.
         """
+
         # XXX: some duplication in code present maybe refactoring needed
         def set_nested_value(nested_dict, keys, value, schema, add_new=False, append_once=False):
             value = self.map_codelist_value(keys, schema, codelists, value)
