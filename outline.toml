@@ -1,9 +1,9 @@
 [datasource]
-connection = '/home/ira_shevchenko_local/Desktop/pdx/pdx_ocds_normalizer/database_client-02-12.db'
+connection = '/app/pdx_ocds_normalizer/database_client_outline.db'
 
 [mapping]
-file = '/home/ira_shevchenko_local/Desktop/pdx/nightingale/mapping.xlsx'
-codelists = '/home/ira_shevchenko_local/Desktop/pdx/nightingale/codelists.xlsx'
+file = '/app/nightingale/outline_mapping.xlsx'
+codelists = '/app/nightingale/codelists.xlsx'
 ocid_prefix = 'ocds-ptecst'
 force_publish = true
 # BuySpeed/AlternateId (has 8 characters and starts with 3 or 2) = SAP/Purchasing Document = SAP PO/Purchasing Document = B2G/Contract Number = TO/Contract Number
@@ -23,16 +23,15 @@ SELECT
   distinct
   BPP."REQ_NBR" AS "Requisition Header Table (REQ_NBR)",
   BPP."LANGUAGE" AS "GENERAL (LANGUAGE)",
-  BPP."CURRENCY" AS "GENERAL (CURRENCY)",
 
   -- tender
   BPP."Bid Number" AS "Bid Header Table (Bid Number)",
-  BPP."Bid Number Scheme" AS "Bid Header Table (Bid Number Scheme)",
+  BPP."Bid Number Scheme" AS "Bid Header Table (BID NUMBER SCHEME)",
   BPP."SHORT_DESC" AS "Requisition Header Table (SHORT_DESC)",
   BPP."Req Header Column 5 Value" as "Req Header Custom Columns (Req Header Column 5 Value)",
   CASE
-      WHEN date(BPP."PO - In Progress Date") < date('now') THEN "complete"
-      WHEN date(CLR.[Validity Per. Start]) < date('now') THEN "complete"
+      WHEN date(BPP."PO - In Progress Date") < date('now') THEN 'complete'
+      WHEN date(CLR."Validity Per. Start") < date('now') THEN 'complete'
       ELSE BPP."Current Header Status and Descriptions"
   END AS "Bid Header Table (Current Header Status and Descriptions)",
   QPB."Estimate Amount" as "Quotes per bid (Estimate Amount)",
@@ -49,7 +48,7 @@ SELECT
   BPP."DESCRIPTION 2" as "Prequalification Type (DESCRIPTION 2)",
   BPP."APPLIES TO 2" as "Prequalification Type (APPLIES TO 2)",
   BPP."VERIFICATION METHOD 2" as "Prequalification Type (VERIFICATION METHOD 2)",
-  BPP."Bid Header Column 12 Value" as "Bid Header Custom Columns (Bid Header Column 12 Value)",
+  CAST(BPP."Bid Header Column 12 Value" AS TEXT) as "Bid Header Custom Columns (Bid Header Column 12 Value)",
 
   BPP."TECHNICAL 3" as "Prequalification Type (TECHNICAL 3)",
   BPP."DESCRIPTION 3" as "Prequalification Type (DESCRIPTION 3)",
@@ -60,7 +59,7 @@ SELECT
   BPP."DESCRIPTION 4" as "Prequalification Type (DESCRIPTION 4)",
   BPP."APPLIES TO 4" as "Prequalification Type (APPLIES TO 4)",
   BPP."VERIFICATION METHOD 4" as "Prequalification Type (VERIFICATION METHOD 4)",
-  BPP."Bid Header Column 14 Value" as "Bid Header Custom Columns (Bid Header Column 14 Value)",
+  CAST(BPP."Bid Header Column 14 Value" AS TEXT) as "Bid Header Custom Columns (Bid Header Column 14 Value)",
 
   BPP."SUITABILITY 5" as "Prequalification Type (SUITABILITY 5)",
   BPP."DESCRIPTION 5" as "Prequalification Type (DESCRIPTION 5)",
@@ -91,13 +90,26 @@ SELECT
 
   -- bids
   -- bid value is missing
+  QPB."Tenderer ID" as "Vendor (TENDERER ID)",
   QPB."Quote Number" as "Quotes per bid (Quote Number)",
   QPB."Entry Date" as "Quotes per bid (Entry Date)",
   QPB."Vendor Number" as "Quotes per bid (Vendor Number)",
-  QPB."Tenderer ID" as "Vendor (TENDERER ID)",
   QPB."Vendor Name" as "Quotes per bid (Vendor Name)",
   QPB."BID SUBMISSION TYPE" as "Quotes per bid (BID SUBMISSION TYPE)",
   QPB."BID CLASSIFICATION SCHEME" as "Quotes per bid (BID CLASSIFICATION SCHEME)",
+
+  -- supplier
+  B2G."B2Gnow ID" AS "Contract Status Report (B2Gnow ID)",
+  BPP."Vendor ID" AS "Vendor (VENDOR ID)",
+  BPP."Vendor Nbr" AS "Vendor (Vendor Nbr)",
+  BPP."VENDOR ADDITIONAL IDENT SCHEME" as "Vendor (VENDOR ADDITIONAL IDENT SCHEME)",
+  BPP."Vendor Name" AS "Vendor (Vendor Name)",
+  BPP."Vendor Tag" AS "Vendor (Vendor Tag)",
+  BPP."Vendor Supplier Tag" AS "Vendor (SUPPLIER TAG)",
+  BPP."Vendor Payee Tag" AS "Vendor (PAYEE TAG)",
+  CLR."Supplier" AS "Contract Listing Report (Supplier)",
+  CLR."Vendor Name" AS "Contract Listing Report (Vendor Name)",
+  CLR."VENDOR IDENTIFIER SCHEME" as "Contract Listing Report (VENDOR IDENTIFIER SCHEME)",
 
   -- procuring entity/parties
   BPP."BuySpeed Bureau Buyer ID" AS "Bureau Reference Sheet (BUYER ID)",
@@ -107,8 +119,8 @@ SELECT
   BRR."BuySpeed Abbreviation" AS "Bureau Reference Sheet (BuySpeed Abbreviation)",
   BRR."Buyer/Name" AS "Bureau Reference Sheet (Buyer/Name)",
   BRR."Buyer/id" AS "Bureau Reference Sheet (Buyer/id)",
-  BPP."BuySpeed Bureau Procuring Entity Tag" AS "Bureau Reference Sheet (PROCURING ENTITY TAG)",
   BPP."BuySpeed Bureau Buyer Tag" AS "Bureau Reference Sheet (BUYER TAG)",
+  BPP."BuySpeed Bureau Procuring Entity Tag" AS "Bureau Reference Sheet (PROCURING ENTITY TAG)",
   BPP."BuySpeed Bureau Payer Tag" AS "Bureau Reference Sheet (PAYER TAG)",
   BPP."BuySpeed Bureau Classification Scheme" AS "Bureau Reference Sheet (BUYSPEED BUREAU CLASSIFICATION SCHEME)",
 
@@ -133,21 +145,10 @@ SELECT
   CLR."DOC ORDINANCE STATEMENT" AS "Contract Listing Report (DOC ORDINANCE STATEMENT)",
   CLR."DOC DOCUMENT TYPE" AS "Contract Listing Report (DOC DOCUMENT TYPE)",
   CLR."Short Text" AS "Contract Listing Report (Short text)",
+  CLR."Short Text ITEM 10" AS "Contract Listing Report (SHORT TEXT ITEM 10)",
   BPP."PO - In Progress Date" AS "PO Status Dates (PO - In Progress Date)",
   BPP."PO Status" AS "Purchase Order Header Table (PO Status)",
   BPP."Procurement Method" AS "Bid Header Custom Columns (PROCUREMENTMETHOD)",
-
-  -- supplier
-  BPP."Vendor Nbr" AS "Vendor (Vendor Nbr)",
-  BPP."Vendor ID" AS "Vendor (VENDOR ID)",
-  BPP."VENDOR ADDITIONAL IDENT SCHEME" as "Vendor (VENDOR ADDITIONAL IDENT SCHEME)",
-  BPP."Vendor Name" AS "Vendor (Vendor Name)",
-  BPP."Vendor Tag" AS "Vendor (Vendor Tag)",
-  BPP."Vendor Supplier Tag" AS "Vendor (SUPPLIER TAG)",
-  BPP."Vendor Payee Tag" AS "Vendor (PAYEE TAG)",
-  CLR."Supplier" AS "Contract Listing Report (Supplier)",
-  CLR."Vendor Name" AS "Contract Listing Report (Vendor Name)",
-  CLR."VENDOR IDENTIFIER SCHEME" as "Contract Listing Report (VENDOR IDENTIFIER SCHEME)",
 
   --contracts
   CLR."Contract Status" AS "Contract Listing Report (CONTRACT STATUS)",
@@ -161,7 +162,6 @@ SELECT
   B2G."Date Paid" AS "Contract Status Report (Date Paid)",
   B2G."Amount Paid" as "Contract Status Report (Amount Paid)",
   B2G."B2G SUBCONTRACTOR ID" AS "Contract Status Report (B2G SUBCONTRACTOR ID)",
-  B2G."B2Gnow ID" AS "Contract Status Report (B2Gnow ID)",
   B2G."SUBCONTRACTOR IDENTIFIER SCHEME" AS "Contract Status Report (SUBCONTRACTOR IDENTIFIER SCHEME)",
   B2G."SUBCONTRACTOR TAG" AS "Vendor (SUBCONTRACTOR TAG)",
   B2G."Business Name" as "Contract Status Report (Business Name)",
@@ -175,14 +175,12 @@ SELECT
   -- TOP."SUBCONTRACTOR IDENTIFIER SCHEME" AS "Task Orders for Parks (SUBCONTRACTOR IDENTIFIER SCHEME)",
   -- TOP."Contractor Name" AS "Task Orders for Parks (Contractor Name)",
 
-
   -- purchase orders
   POLR."Purchasing Document ITEM 10" AS "Purchase Orders (PURCHASING DOCUMENT ITEM 10)",
   POLR."Short Text ITEM 10" AS "Purchase Orders (SHORT TEXT ITEM 10)",
   AggPO.Min_Created_On AS "Purchase Orders (CREATED ON MIN)",
   AggPO.Max_Delivery_Date AS "Purchase Orders (DELIVERY DATE MAX)",
 
-  POLR."Order Quantity" AS "PO Listing Report (Order Quantity)",
   --implementation
   POLR."MILESTONE ID" AS "PO Listing Report (MILESTONE ID)",
   POLR."Short Text" AS "PO Listing Report (Short Text)",
@@ -192,6 +190,7 @@ SELECT
   POLR."ITEM CLASSIFICATION" AS "PO Listing Report (ITEM CLASSIFICATION)",
   POLR."Material Group" AS "PO Listing Report (Material Group)",
   MGN.description AS "Material Group (NIGP) (description)",
+  POLR."Order Quantity" AS "PO Listing Report (Order Quantity)",
   POLR."MILESTONE TYPE" AS "PO Listing Report (MILESTONE TYPE)",
   POLR."INVOICING STATUS" AS "PO Listing Report (INVOICING STATUS)",
 
@@ -200,7 +199,6 @@ SELECT
   -- TOP."TO #" AS "Task Orders for Parks (TO #)",
   -- TOP."MILESTONE TYPE" AS "Task Orders for Parks (MILESTONE TYPE)",
   -- TOP."TO Name" AS "Task Orders for Parks (TO Name)",
-
   -- TOP."Contractor Name" AS "Task Orders for Parks (Contractor Name)",
   -- TOP."DPO#" AS "Task Orders for Parks (DPO#)",
   -- TOP."Start" AS "Task Orders for Parks (Start)",
@@ -254,7 +252,6 @@ SELECT
   PMD."Type Code ID" AS "Procurement Method Details (Type Code ID)",
   PMD."Description" AS "Procurement Method Details (Description)",
   PMD."Procurement Method Details" AS "Procurement Method Details (Procurement Method Details)",
-
   CLR."Your Reference" AS "Contract Listing Report (Your Reference)",
   CLR."Bureau" AS "Contract Listing Report (Bureau)",
   -- CLR."Releases to Dte" AS "Contract Listing Report (Releases to Dte)",
@@ -262,7 +259,7 @@ SELECT
   CLR."Original Expiration Date" AS "Contract Listing Report (Original Expiration Date)",
   CLR."Total Amount of Amendment" AS "Contract Listing Report (Total Amount of Amendment)",
   CLR."WBS Element" AS "Contract Listing Report (WBS Element)",
-  CLR."Item" AS "Contract Listing Report (Item)"
+  CLR."Item" AS "Contract Listing Report (Item)",
   -- TOP."TO #" AS "Task Orders for Parks (TO #)",
   -- TOP."TO Name" AS "Task Orders for Parks (TO Name)",
   -- TOP."B2G ID" AS "Task Orders for Parks (B2G ID)",
@@ -273,6 +270,7 @@ SELECT
   -- TOP."Amount" AS "Task Orders for Parks (Amount)",
   -- TOP."CURRENCY" AS "Task Orders for Parks (CURRENCY)",
   -- TOP."Contract Type" AS "Task Orders for Parks (Contract Type)"
+  BPP."CURRENCY" AS "GENERAL (CURRENCY)"
 FROM [BuySpeed Project Projects] as BPP
 INNER JOIN [Bureau Reference Sheet] as BRR
     ON BPP."Req Header Column 1 Value" = BRR."BuySpeed Abbreviation"
@@ -301,19 +299,6 @@ LEFT JOIN "material group nigp" as MGN
     on MGN.code = POLR."Material Group"
 LEFT JOIN "releases to Dte" as RDTE
     on RDTE.code = CLR."Releases to Dte"
--- LEFT JOIN "Task Orders for Parks" as TOP
-  -- ON BPP."Alternate Id.1" = TOP."Contract Number"
- WHERE
-    -- BPP."Bid Number" = "00001566" AND
-   -- BPP."Alternate Id.1" = '30007043' -- milestones
-  -- BPP."REQ_NBR" = '131235'  -- currency troubles
-  -- BPP."REQ_NBR" = '121649' -- few transactions
-  BPP."REQ_NBR" = '121649' -- selectionCriteria
- -- BPP."REQ_NBR" = '125981' -- list contracts
--- AND
--- BPP."Alternate Id.1" = "31001814"
-  --AND
---      CLR.[Purchasing Document] IS NOT NULL and CLR.[Purchasing Document] != '';
 """
 
 
@@ -325,4 +310,4 @@ base_uri = 'https://www.opendata.portlandoregon.gov/'
 license = 'https://opendatacommons.org/licenses/pddl/1-0/'
 
 [output]
-directory = '/home/ira_shevchenko_local/Desktop/pdx/nightingale/output'
+directory = '/app/nightingale/output'

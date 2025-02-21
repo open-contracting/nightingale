@@ -6,11 +6,11 @@ import click
 import click_pathlib
 from pydantic import TypeAdapter
 
-from config import Config
-from loader import DataLoader
-from mapper import OCDSDataMapper
-from publisher import DataPublisher
-from writer import DataWriter
+from nightingale.config import Config
+from nightingale.loader import DataLoader
+from nightingale.mapper import OCDSDataMapper
+from nightingale.publisher import DataPublisher
+from nightingale.writer import DataWriter
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def load_config(config_file):
         raise click.ClickException(f"Error decoding TOML from {config_file}.")
 
 
-# @click.command()
+@click.command()
 @click.option(
     "--config",
     "config_file",
@@ -123,9 +123,9 @@ def run(
             "codelists": codelists_file or config_data["mapping"].get("codelists"),
             "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
             "selector": selector_content,
-            "force_publish": force_publish
-            if force_publish is not None
-            else config_data["mapping"].get("force_publish", False),
+            "force_publish": (
+                force_publish if force_publish is not None else config_data["mapping"].get("force_publish", False)
+            ),
         }
         config_data["publishing"] = {
             "publisher": publisher or config_data["publishing"]["publisher"],
@@ -159,26 +159,5 @@ def run(
         raise click.ClickException(f"Error during transformation: {e}")
 
 
-
 if __name__ == "__main__":
-    run(
-        "/home/ira_shevchenko_local/Desktop/pdx/nightingale/outline.toml",  # config_file
-        True,  # package
-        None,  # validate_mapping
-        "INFO",  # loglevel
-        None,  # datasource
-        None,  # mapping_file
-        None,  # codelists_file
-        None,  # ocid_prefix
-        None,  # selector
-        True,  # force_publish
-        None,  # publisher
-        None,  # base_uri
-        None,  # version
-        None,  # publisher_uid
-        None,  # publisher_scheme
-        None,  # publisher_uri
-        None,  # extensions
-        None  # output_directory
-    )
-
+    run()

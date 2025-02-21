@@ -1,13 +1,13 @@
 import logging
-from datetime import datetime
 from typing import Any, Optional
 
 import dict_hash
 
-from codelists import CodelistsMapping
-from config import Config
-from mapping_template.v09 import MappingTemplate, MappingTemplateValidator
-from utils import get_iso_now, is_new_array, remove_dicts_without_id
+from nightingale.codelists import CodelistsMapping
+from nightingale.config import Config
+from nightingale.mapping_template.v09 import MappingTemplate
+from nightingale.mapping_template.validator import MappingTemplateValidator
+from nightingale.utils import get_iso_now, is_new_array, remove_dicts_without_id
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +106,6 @@ class OCDSDataMapper:
                 row, mapping, mapping.get_schema(), curr_release, array_counters=array_counters, codelists=codelists
             )
             count += 1
-            # logger.info(f"Processed {count} rows")
 
         if curr_release:
             logger.info(f"Finishing release with {count} rows")
