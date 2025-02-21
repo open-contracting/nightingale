@@ -95,7 +95,8 @@ class OCDSDataMapper:
                 curr_ocid = ocid
             if curr_ocid != ocid:
                 logger.info(f"Finishing release with {count} rows")
-                self.finish_release(curr_ocid, curr_release, mapped, max(curr_release_dates))
+                max_date = max(curr_release_dates) if curr_release_dates else None
+                self.finish_release(curr_ocid, curr_release, mapped, max_date)
                 curr_ocid = ocid
                 curr_release = {}
                 array_counters = {}
