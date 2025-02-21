@@ -1,6 +1,5 @@
 import tomllib
 from pathlib import Path
-from typing import Optional, Self
 
 from pydantic import TypeAdapter
 from pydantic.dataclasses import dataclass
@@ -33,8 +32,8 @@ class Mapping:
     file: Path
     ocid_prefix: str
     selector: str
-    force_publish: Optional[bool] = False
-    codelists: Optional[Path] = None
+    force_publish: bool | None = False
+    codelists: Path | None = None
 
 
 @dataclass(frozen=True)
@@ -45,7 +44,7 @@ class Config:
     output: Output
 
     @classmethod
-    def from_file(cls, config_file: Path) -> Self:
+    def from_file(cls, config_file: Path) -> "Config":
         with open(config_file, "rb") as f:
             data = tomllib.load(f)
         return TypeAdapter(Config).validate_python(data)

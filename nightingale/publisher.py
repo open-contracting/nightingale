@@ -3,23 +3,20 @@ from urllib.parse import urljoin
 
 from ocdskit.combine import package_releases
 
-from utils import get_iso_now, produce_package_name
+from nightingale.config import Publishing
+from nightingale.utils import get_iso_now, produce_package_name
 
 
 class DataPublisher:
     """
     Packs array of releases into a release package.
-
-    :param config: Configuration object containing settings for the publisher.
-    :type config: Config
     """
 
-    def __init__(self, config, mapping):
+    def __init__(self, config: Publishing, mapping):
         """
         Initialize the DataPublisher.
 
         :param config: Configuration object containing settings for the publisher.
-        :type config: Config
         """
         self.config = config
         self.mapping = mapping
@@ -29,10 +26,7 @@ class DataPublisher:
         """
         Produce a URI for the package based on the given date.
 
-        :param date: The date to use for generating the URI.
-        :type date: str
         :return: The produced URI.
-        :rtype: str
         """
         full_name = produce_package_name(self.date)
         return urljoin(self.config.base_uri, f"/{full_name}")
@@ -42,9 +36,7 @@ class DataPublisher:
         Package the given data into a release package.
 
         :param data: List of release dictionaries to be packaged.
-        :type data: list[dict[str, Any]]
         :return: A dictionary representing the release package.
-        :rtype: dict[str, Any]
         """
         kwargs = dict(
             uri=self.produce_uri(),

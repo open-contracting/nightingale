@@ -1,7 +1,6 @@
 API Reference
 =============
 
-
 .. automodule:: nightingale.loader
     :members:
     :undoc-members:
@@ -17,7 +16,12 @@ API Reference
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: nightingale.mapping.v1.config
+.. automodule:: nightingale.codelists
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: nightingale.mapping_template.v09
     :members:
     :undoc-members:
     :show-inheritance:

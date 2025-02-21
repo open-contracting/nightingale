@@ -2,7 +2,6 @@ import logging
 
 import openpyxl
 
-from nightingale.mapping_template.validator import MappingTemplateValidator  # noqa
 from nightingale.utils import get_longest_array_path
 
 logger = logging.getLogger(__name__)

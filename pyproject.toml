@@ -1,60 +1,64 @@
-[project]
-name = "nightingale"
-version = "0.0.1"
-readme = "README.rst"
-description = "An ETL to transform US cities procurement data into OCDS format."
-#description-file = "README.rst"
-authors = [
-    { name = "Open Contracting Partnership", email = "data@open-contracting.org" },
-]
-
-classifiers = [
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-]
-
-
-[project.license]
-file = "LICENSE"
-
-[project.scripts]
-nightingale = "nightingale.cli:run"
-
-[project.urls]
-Documentation = "https://github.com/open-contracting/nightingale"
-Source = "https://github.com/open-contracting/nightingale"
-
 [build-system]
 requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
 
-[tool.pylint.BASIC]
-good-names = 'e,f,i,n,io' # exception, file, enumerate, number
-
-[tool.pylint.'MESSAGES CONTROL']
-disable = [
-    'too-many-arguments',
-    # Defer to flake8
-    'line-too-long',
-    # Defer to pydocstyle
-    'missing-module-docstring',
-    'missing-class-docstring',
-    'missing-function-docstring',
+[project]
+name = "nightingale"
+version = "0.0.1"
+authors = [{name = "Open Contracting Partnership", email = "data@open-contracting.org"}]
+description = "An ETL to transform US cities procurement data into OCDS format."
+readme = "README.rst"
+license = {text = "BSD"}
+urls = {Homepage = "https://github.com/open-contracting/nightingale"}
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+dependencies = [
+    "click",
+    "click-pathlib",
+    "dict-hash",
+    "ocdskit",
+    "openpyxl",
+    "pydantic",
+    "simplejson",
 ]
 
-[tool.setuptools]
-packages = ["nightingale"]
+[project.scripts]
+nightingale = "nightingale.cli:run"
 
+[project.optional-dependencies]
+test = [
+    "coverage",
+    "pytest",
+    "pytest-mock",
+]
+types = [
+    "mypy",
+    "types-openpyxl",
+    "types-simplejson",
+]
 
-[tool.coverage.run]
-omit = ["tests/*"]
+[tool.setuptools.packages.find]
+exclude = [
+    "tests",
+    "tests.*",
+]
 
 [tool.ruff]
-ignore = ['E501']
+line-length = 119
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
+
+[tool.mypy]
+strict = true
+warn_unreachable = true
+exclude = "(build|docs|tests)/"

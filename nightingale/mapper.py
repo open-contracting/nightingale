@@ -15,9 +15,6 @@ logger = logging.getLogger(__name__)
 class OCDSDataMapper:
     """
     Maps data from a source to the OCDS format.
-
-    :param config: Configuration object containing settings for the mapper.
-    :type config: Config
     """
 
     def __init__(self, config: Config):
@@ -25,7 +22,6 @@ class OCDSDataMapper:
         Initialize the OCDSDataMapper.
 
         :param config: Configuration object containing settings for the mapper.
-        :type config: Config
         """
         self.config = config
         self.mapping = MappingTemplate(config.mapping)
@@ -38,9 +34,7 @@ class OCDSDataMapper:
         Produce an OCID based on the given value.
 
         :param value: The value to use for generating the OCID.
-        :type value: str
         :return: The produced OCID.
-        :rtype: str
         """
         prefix = self.config.mapping.ocid_prefix
         return f"{prefix}-{value}"
@@ -50,9 +44,7 @@ class OCDSDataMapper:
         Map data from the loader to the OCDS format.
 
         :param loader: Data loader object.
-        :type loader: Any
         :return: List of mapped release dictionaries.
-        :rtype: list[dict[str, Any]]
         """
         config = self.config.mapping
 
@@ -74,11 +66,8 @@ class OCDSDataMapper:
         Transform the input data to the OCDS format.
 
         :param data: List of input data dictionaries.
-        :type data: list[dict[Any, Any]]
         :param mapping: Mapping configuration object.
-        :type mapping: MappingTemplate
         :return: List of transformed release dictionaries.
-        :rtype: list[dict[str, Any]]
         """
         curr_ocid = ""
         curr_release = {}
@@ -135,15 +124,10 @@ class OCDSDataMapper:
         Transform a single row of input data to the OCDS format.
 
         :param input_data: Dictionary of input data.
-        :type input_data: dict[Any, Any]
         :param mapping_config: Mapping configuration object.
-        :type mapping_config: MappingTemplate
         :param flattened_schema: Flattened schema dictionary.
-        :type flattened_schema: dict[str, Any]
         :param result: Existing result dictionary to update.
-        :type result: dict, optional
         :return: Transformed row dictionary.
-        :rtype: dict
         """
 
         # XXX: some duplication in code present maybe refactoring needed
@@ -309,7 +293,6 @@ class OCDSDataMapper:
         Generate and set a unique ID for the release based on its content.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         """
         id_ = dict_hash.sha256(curr_row)
         curr_row["id"] = id_
@@ -319,7 +302,6 @@ class OCDSDataMapper:
         Set the release date to the current date and time.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         """
 
         # if not curr_row["awards"] and not curr_row["contracts"]:
@@ -352,7 +334,6 @@ class OCDSDataMapper:
         Tag the initiation type of the release as 'tender' if applicable.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         """
         if "tender" in curr_row and "initiationType" not in curr_row:
             curr_row["initiationType"] = "tender"
@@ -362,9 +343,7 @@ class OCDSDataMapper:
         Set the OCID for the release.
 
         :param curr_row: The current release row dictionary.
-        :type curr_row: dict
         :param curr_ocid: The OCID value to set.
-        :type curr_ocid: str
         """
         curr_row["ocid"] = self.produce_ocid(curr_ocid)
 
@@ -383,7 +362,6 @@ class OCDSDataMapper:
         Recursively remove arrays that do not contain an 'id' field.
 
         :param data: The data dictionary to process.
-        :type data: dict[str, Any]
         """
 
         return remove_dicts_without_id(data)

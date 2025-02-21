@@ -130,7 +130,7 @@ Run the transformation using the CLI:
 This will produce an output file in the `output` directory.
 
 MappingTemplate Configuration
-----------------------
+-----------------------------
 
 Field-level mapping is specified in the `mapping.xlsx` file. It is formed from stardard `"OCDS Field Level MappingTemplate template" <https://www.open-contracting.org/resources/ocds-field-level-mapping-template/>`_.
 For more information about how to fill the mapping file, refer to the `OCDS Field Level MappingTemplate template guidance <https://www.open-contracting.org/resources/ocds-1-1-mapping-template-guidance/>`_.

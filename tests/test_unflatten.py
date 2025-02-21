@@ -301,7 +301,7 @@ def mock_config():
                 "col4": "val4",
                 "col5": "val5",
                 "col6": "val6",
-                "col7": "val7"
+                "col7": "val7",
             },
             MockMappingConfig(
                 {
@@ -313,7 +313,7 @@ def mock_config():
                     "col6": "/object/lvl1/lvl2/array2/field1",
                     "col7": "/object/lvl1/lvl2/array2/id",
                 },
-                array_paths=["/object/lvl1/array1", "/object/lvl1/lvl2/array2"],
+                array_paths=["/lvl1/array"],
             ),
             {
                 "/object/lvl1/field": {"type": "string"},
@@ -332,25 +332,12 @@ def mock_config():
                     "lvl1": {
                         "field": "val1",
                         "array1": [
-                            {
-                                "field1": "val2",
-                                "field2": "val3",
-                                "id": "val4",
-                            },
+                            {"id": "val4", "field1": "val2", "field2": "val3"},
                         ],
-                        "lvl2": {
-                            "field": "val5",
-                            "array2": [
-                                {
-                                    "field1": "val6",
-                                    "id": "val7",
-                                }
-                            ]
-                        }
-
+                        "lvl2": {"field": "val5", "array2": [{"id": "val7", "field1": "val6"}]},
                     }
                 }
-            }
+            },
         ),
     ],
 )
