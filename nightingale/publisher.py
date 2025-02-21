@@ -38,17 +38,18 @@ class DataPublisher:
         :param data: List of release dictionaries to be packaged.
         :return: A dictionary representing the release package.
         """
-        kwargs = dict(
+        package = package_releases(
+            data,
             uri=self.produce_uri(),
             publisher=self.get_publisher(),
             published_date=self.date,
             extensions=self.get_extensions(),
+            version=self.config.version or "1.1",
         )
-        for key in ("version", "license", "publicationPolicy"):
+        for key in ("license", "publicationPolicy"):
             if value := getattr(self.config, key, None):
-                kwargs[key] = value
-
-        return package_releases(data, **kwargs)
+                package[key] = value
+        return package
 
     def get_publisher(self):
         publisher = {
