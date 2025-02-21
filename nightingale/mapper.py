@@ -206,19 +206,22 @@ class OCDSDataMapper:
                                     else:
                                         continue_to_next = False
                                         for index, criterion in enumerate(
-                                                result["tender"]["selectionCriteria"]["criteria"]):
+                                            result["tender"]["selectionCriteria"]["criteria"]
+                                        ):
                                             if last_key_name not in criterion.keys():
                                                 if continue_to_next:
                                                     break
                                                 result["tender"]["selectionCriteria"]["criteria"][index][
-                                                    last_key_name] = [value]
+                                                    last_key_name
+                                                ] = [value]
                                                 continue_to_next = True
                                         if continue_to_next:
                                             continue
                                 else:
                                     # case for /parties/roles
-                                    set_nested_value(result, keys, value, flattened_schema, add_new=True,
-                                                     append_once=True)
+                                    set_nested_value(
+                                        result, keys, value, flattened_schema, add_new=True, append_once=True
+                                    )
                                     continue
                             else:
                                 set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
@@ -233,7 +236,8 @@ class OCDSDataMapper:
                                     result["tender"]["selectionCriteria"]["criteria"].append({})
                                 else:
                                     for index, criterion in enumerate(
-                                            result["tender"]["selectionCriteria"]["criteria"]):
+                                        result["tender"]["selectionCriteria"]["criteria"]
+                                    ):
                                         if last_key_name not in criterion.keys():
                                             result["tender"]["selectionCriteria"]["criteria"].append({})
                                             break
@@ -259,16 +263,20 @@ class OCDSDataMapper:
                                 if child_path != "criteria":
                                     if result["tender"].get("selectionCriteria", None):
                                         for index, criterion in enumerate(
-                                                result["tender"]["selectionCriteria"]["criteria"]):
+                                            result["tender"]["selectionCriteria"]["criteria"]
+                                        ):
                                             if last_key_name not in criterion.keys() or len(criterion.keys()) == 0:
                                                 if last_key_name != "minimum":
                                                     current = result["tender"]["selectionCriteria"]["criteria"][index]
                                                     break
                                                 else:
-                                                    if len(criterion.keys()) == 0 or criterion.get("type",
-                                                                                                   "") == "economic":
+                                                    if (
+                                                        len(criterion.keys()) == 0
+                                                        or criterion.get("type", "") == "economic"
+                                                    ):
                                                         current = result["tender"]["selectionCriteria"]["criteria"][
-                                                            index]
+                                                            index
+                                                        ]
                                                         break
 
                             else:

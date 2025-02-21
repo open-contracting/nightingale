@@ -25,10 +25,12 @@ class MockMappingConfig:
     def get_containing_array_path(self, path):
         return get_longest_array_path(self.array_paths, path)
 
+
 @pytest.fixture(autouse=True)
 def mock_load_workbook():
     with mock.patch("openpyxl.load_workbook", return_value=mock.MagicMock()):
         yield
+
 
 @pytest.fixture
 def mock_config():
