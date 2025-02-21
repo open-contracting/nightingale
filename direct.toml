@@ -21,8 +21,24 @@ SELECT
   -- release
   distinct
   POLR."LANGUAGE" AS "GENERAL (LANGUAGE)",
-    POLR."Buyer ID" AS "PO Listing Report (BUYER ID)",
-    POLR."VENDOR ID" AS "PO Listing Report (VENDOR ID)",
+
+  -- procuring entity/parties
+  -- buyer
+  POLR."Buyer ID" AS "PO Listing Report (BUYER ID)",
+  BA."Bureau" AS "Business Area (Bureau)",
+  POLR."Business Area" AS "PO Listing Report (Business Area)",
+  POLR."Business Identifier Scheme" AS "PO Listing Report (BUSINESS IDENTIFIER SCHEME)",
+  POLR."Procuring Entity Tag" AS "PO Listing Report (PROCURING ENTITY TAG)",
+  POLR."Buyer Tag" AS "PO Listing Report (BUYER TAG)",
+  POLR."Payer Tag" AS "PO Listing Report (PAYER TAG)",
+  -- supplier
+  POLR."VENDOR ID" AS "PO Listing Report (VENDOR ID)",
+  POLR."VENDOR IDENTIFIER SCHEME" as "PO Listing Report (VENDOR IDENTIFIER SCHEME)",
+  POLR."Vendor" AS "PO Listing Report (Vendor)",
+  POLR."Vendor Name" AS "PO Listing Report (Name 1)",
+  POLR."Tenderer Tag" AS "Vendor (VENDOR TAG)",
+  POLR."Supplier Tag" AS "Vendor (SUPPLIER TAG)",
+  POLR."Payee Tag" AS "Vendor (PAYEE TAG)",
 
   POLR."Purchasing Document" AS "PO Listing Report (Purchasing Document)",
   POLR."CONTRACT ITEM ID" AS "PO Listing Report (CONTRACT ITEM ID)",
@@ -42,18 +58,8 @@ SELECT
      POLR."Award Status" AS "PO Listing Report (AWARD STATUS)",
   AggPO."FULL ORDERS AMOUNT" AS "PO Listing Report (FULL CONTRACT AMOUNT)",
 
-    -- buyer
-    BA."Bureau" AS "Business Area (Bureau)",
-    POLR."Business Area" AS "PO Listing Report (Business Area)",
-    POLR."Business Identifier Scheme" AS "PO Listing Report (BUSINESS IDENTIFIER SCHEME)",
-
   -- award/docs
   POLR."Procurement Method" AS "PO Listing Report (PROCUREMENTMETHOD)",
-
-  -- supplier
- POLR."VENDOR IDENTIFIER SCHEME" as "PO Listing Report (VENDOR IDENTIFIER SCHEME)",
- POLR."Vendor" AS "PO Listing Report (Vendor)",
- POLR."Vendor Name" AS "PO Listing Report (Name 1)",
 
   --contracts
   UC.code as "UNIT CLASSIFICATION (CODE)",
@@ -82,13 +88,6 @@ SELECT
   POLR."INVOICING STATUS" AS "PO Listing Report (INVOICING STATUS)",
   POLR."CURRENCY" AS "GENERAL (CURRENCY)",
 
-  -- procuring entity/parties
-    POLR."Procuring Entity Tag" AS "PO Listing Report (PROCURING ENTITY TAG)",
-    POLR."Buyer Tag" AS "PO Listing Report (BUYER TAG)",
-    POLR."Tender Tag" AS "Vendor (VENDOR TAG)",
-    POLR."Supplier Tag" AS "Vendor (SUPPLIER TAG)",
-    POLR."Payee Tag" AS "PO Listing Report (PAYER TAG)",
-    POLR."Payee Tag" AS "Vendor (PAYEE TAG)",
 
   -- for joins
   POLR."Outline agreement" AS "Outline agreement"

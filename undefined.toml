@@ -74,26 +74,29 @@ SELECT
   END AS "Bid Header Custom Columns (SUBMISSIONMETHOD)",
 
   -- procuring entity/parties
+  -- buyer
   BPP."BuySpeed Bureau Buyer ID" AS "Bureau Reference Sheet (BUYER ID)",
-  BPP."Req Header Column 1 Value" AS "Req Header Custom Columns (Req Header Column 1 Value)",
   BRR."BuySpeed Bureau Name" AS "Bureau Reference Sheet (BuySpeed Bureau Name)",
+    BPP."Req Header Column 1 Value" AS "Req Header Custom Columns (Req Header Column 1 Value)",
+  BPP."BuySpeed Bureau Classification Scheme" AS "Bureau Reference Sheet (BUYSPEED BUREAU CLASSIFICATION SCHEME)",
   BPP."BuySpeed Bureau Procuring Entity Tag" AS "Bureau Reference Sheet (PROCURING ENTITY TAG)",
   BPP."BuySpeed Bureau Buyer Tag" AS "Bureau Reference Sheet (BUYER TAG)",
   BPP."BuySpeed Bureau Payer Tag" AS "Bureau Reference Sheet (PAYER TAG)",
-  BPP."BuySpeed Bureau Classification Scheme" AS "Bureau Reference Sheet (BUYSPEED BUREAU CLASSIFICATION SCHEME)",
+
+    -- supplier
+    BPP."Vendor ID" AS "Vendor (VENDOR ID)",
+  BPP."Vendor Nbr" AS "Vendor (Vendor Nbr)",
+  BPP."VENDOR ADDITIONAL IDENT SCHEME" as "Vendor (VENDOR ADDITIONAL IDENT SCHEME)",
+  BPP."Vendor Name" AS "Vendor (Vendor Name)",
+  BPP."Vendor Tag" AS "Vendor (VENDOR TAG)",
+  BPP."Vendor Supplier Tag" AS "Vendor (SUPPLIER TAG)",
+  BPP."Vendor Payee Tag" AS "Vendor (PAYEE TAG)",
+
 
   -- award/docs
   BPP."PO - In Progress Date" AS "PO Status Dates  (PO - In Progress Date)",
   BPP."Procurement Method" AS "Bid Header Custom Columns (PROCUREMENTMETHOD)",
 
-  -- supplier
-  BPP."VENDOR ADDITIONAL IDENT SCHEME" as "Vendor (VENDOR ADDITIONAL IDENT SCHEME)",
-  BPP."Vendor Nbr" AS "Vendor (Vendor Nbr)",
-  BPP."Vendor Name" AS "Vendor (Vendor Name)",
-  BPP."Vendor ID" AS "Vendor (VENDOR ID)",
-  BPP."Vendor Tag" AS "Vendor (VENDOR TAG)",
-  BPP."Vendor Supplier Tag" AS "Vendor (SUPPLIER TAG)",
-  BPP."Vendor Payee Tag" AS "Vendor (PAYEE TAG)",
 
   -- for joins
   BRR."BuySpeed Abbreviation" AS "Bureau Reference Sheet (BuySpeed Abbreviation)",
