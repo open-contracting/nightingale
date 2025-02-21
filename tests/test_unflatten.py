@@ -384,8 +384,9 @@ def test_produce_ocid(mock_config, input_data, expected_ocid):
 def test_date_release(mock_config):
     mapper = OCDSDataMapper(mock_config)
     curr_row = {}
-    mapper.date_release(curr_row)
+    mapper.date_release(curr_row, "2022-01-01T00:00:00Z")
     assert "date" in curr_row
+    assert curr_row["date"] == "2022-01-01T00:00:00Z"
 
 
 def test_tag_initiation_type(mock_config):
@@ -500,7 +501,7 @@ def test_finish_release(mock_get_iso_now, mock_config):
     curr_ocid = "1"
     mapped = []
 
-    mapper.finish_release(curr_ocid, curr_release, mapped)
+    mapper.finish_release(curr_ocid, curr_release, mapped, None)
 
     expected_release = {
         "field": "value1",
