@@ -18,6 +18,9 @@ class dummy_ocds_mapping_template:
     def get_schema(self):
         return self._schema
 
+    def get_mappings(self):
+        return self.mappings
+
     def get_ocid_mapping(self):
         return "ocid"
 
