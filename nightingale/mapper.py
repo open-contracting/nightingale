@@ -216,7 +216,7 @@ class OCDSDataMapper:
         if result:
             if result.get("tender", {}).get("selectionCriteria", {}).get("criteria", None):
                 skip_criteria_processing = True
-        contiguous_groups = group_contiguous_mappings(self.mapping.mappings)
+        contiguous_groups = group_contiguous_mappings(self.mapping.get_mappings())
         for block, group in contiguous_groups:
             sorted_group = sort_group_by_parent_and_id(group)
             for mapping in sorted_group:
