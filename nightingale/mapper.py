@@ -7,7 +7,13 @@ from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
 from nightingale.mapping_template.v09 import MappingTemplate
 from nightingale.mapping_template.validator import MappingTemplateValidator
-from nightingale.utils import get_iso_now, is_new_array, remove_dicts_without_id
+from nightingale.utils import (
+    get_iso_now,
+    group_contiguous_mappings,
+    is_new_array,
+    remove_dicts_without_id,
+    sort_group_by_parent_and_id,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +89,7 @@ class OCDSDataMapper:
         array_counters = {}
         mapped = []
         count = 0
+        ocids = 0
 
         ocid_mapping = mapping.get_ocid_mapping()
         for row in data:
@@ -101,6 +108,7 @@ class OCDSDataMapper:
                 curr_release = {}
                 array_counters = {}
                 curr_release_dates = set()
+                ocids += 1
 
             curr_release = self.transform_row(
                 row,
@@ -118,6 +126,7 @@ class OCDSDataMapper:
             logger.info(f"Finishing release with {count} rows")
             max_date = max(curr_release_dates) if curr_release_dates else None
             self.finish_release(curr_ocid, curr_release, mapped, max_date)
+        logger.info(f"Created {ocids} unique releases")
         return mapped
 
     def finish_release(self, curr_ocid, curr_release, mapped, release_date):
@@ -207,14 +216,17 @@ class OCDSDataMapper:
         if result:
             if result.get("tender", {}).get("selectionCriteria", {}).get("criteria", None):
                 skip_criteria_processing = True
-
-        for flat_col, value in input_data.items():
-            if not value:
-                continue
-            paths = mapping_config.get_paths_for_mapping(flat_col, force_publish=self.config.mapping.force_publish)
-            if not paths:
-                continue
-            for path in paths:
+        contiguous_groups = group_contiguous_mappings(self.mapping.mappings)
+        for block, group in contiguous_groups:
+            sorted_group = sort_group_by_parent_and_id(group)
+            for mapping in sorted_group:
+                flat_col = mapping["mapping"]
+                if not flat_col:
+                    continue
+                value = input_data.get(flat_col)
+                if not value:
+                    continue
+                path = mapping["path"]
                 if "/tender/selectionCriteria/criteria" in path and skip_criteria_processing:
                     continue
                 if path in datetime_paths and value:
@@ -226,50 +238,35 @@ class OCDSDataMapper:
                     array_value = value
                     if path == array_path:
                         if "criteria" in path:
-                            if child_path != "criteria":
-                                if result["tender"].get("selectionCriteria", None):
-                                    if len(result["tender"]["selectionCriteria"]["criteria"]) == 0:
-                                        result["tender"]["selectionCriteria"]["criteria"].append({})
-                                        result["tender"]["selectionCriteria"]["criteria"][-1][last_key_name] = [value]
-                                        continue
-                                    else:
-                                        continue_to_next = False
-                                        for index, criterion in enumerate(
-                                            result["tender"]["selectionCriteria"]["criteria"]
-                                        ):
-                                            if last_key_name not in criterion.keys():
-                                                if continue_to_next:
-                                                    break
-                                                result["tender"]["selectionCriteria"]["criteria"][index][
-                                                    last_key_name
-                                                ] = [value]
-                                                continue_to_next = True
-                                        if continue_to_next:
-                                            continue
-                                else:
-                                    # case for /parties/roles
-                                    set_nested_value(
-                                        result, keys, value, flattened_schema, add_new=True, append_once=True
-                                    )
-                                    continue
-                            else:
+                            if child_path == "criteria":
+                                import pdb
+
+                                pdb.set_trace()
                                 set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
                                 continue
-                        else:
-                            set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
-                            continue
+
+                            tender = result.get("tender", {})
+                            selection = tender.get("selectionCriteria")
+                            if selection:
+                                criteria = selection.get("criteria", [])
+                                if not criteria:
+                                    criteria.append({last_key_name: [value]})
+                                else:
+                                    for criterion in criteria:
+                                        if last_key_name not in criterion:
+                                            criterion[last_key_name] = [value]
+                                            break
+                                continue
+                        set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
+                        continue
                     elif "criteria" in path:
                         if child_path != "criteria":
-                            if result["tender"].get("selectionCriteria", None):
+                            if result.get("tender") and result["tender"].get("selectionCriteria", None):
                                 if len(result["tender"]["selectionCriteria"]["criteria"]) == 0:
                                     result["tender"]["selectionCriteria"]["criteria"].append({})
                                 else:
-                                    for index, criterion in enumerate(
-                                        result["tender"]["selectionCriteria"]["criteria"]
-                                    ):
-                                        if last_key_name not in criterion.keys():
-                                            result["tender"]["selectionCriteria"]["criteria"].append({})
-                                            break
+                                    if last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1].keys():
+                                        result["tender"]["selectionCriteria"]["criteria"].append({})
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
                             array_counters[array_path] = array_value
@@ -278,7 +275,6 @@ class OCDSDataMapper:
                         if last_key_name == "id":
                             array_counters[array_path] = array_value
                             set_nested_value(result, keys[:-1], {}, flattened_schema, True)
-                        set_nested_value(result, keys[:-1], [{}], flattened_schema)
 
                     current = result
                     for i, key in enumerate(keys[:-1]):

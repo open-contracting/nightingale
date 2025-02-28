@@ -48,6 +48,7 @@ class MappingTemplate:
         # Iterate over the rows, starting from the third row
         in_extensions = False
         current_extension = ""
+        current_block = ""
         mappings = []
 
         for row in sheet.iter_rows(min_row=4, values_only=True):
@@ -57,10 +58,13 @@ class MappingTemplate:
             description = row[4]
             mapping = row[5]
             match column_type:
+                case "span" | "ref_span" | "extension_span":
+                    current_block = path
                 case "field" | "required_field" | "extension_field" | "additional_field":
                     if not mapping:
                         continue
                     row = {
+                        "block": current_block,
                         "path": path if path.startswith("/") else "/" + path,
                         "title": title,
                         "description": description,
@@ -71,7 +75,7 @@ class MappingTemplate:
                         "is_additional": column_type == "additional_field",
                     }
                     mappings.append(row)
-                case "span" | "extension_span" | "subtitle" | "ref_span" | "required_span":
+                case "subtitle" | "required_span":
                     continue
                 case "section":
                     if EXTENSIONS in path or ADDITONAL_FIELDS in path:

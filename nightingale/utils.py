@@ -76,3 +76,50 @@ def get_longest_array_path(arrays, path):  # extract for testing
     for array in reversed(sorted(arrays, key=len)):
         if path.startswith(array):
             return array
+
+
+def group_contiguous_mappings(mapping_list: list[dict]) -> list[tuple[str, list[dict]]]:
+    """
+    Group mapping items by contiguous blocks: group consecutive items that share the same block.
+    """
+    groups = []
+    if not mapping_list:
+        return groups
+    current_block = mapping_list[0]["block"]
+    current_group = [mapping_list[0]]
+    for item in mapping_list[1:]:
+        if item["block"] == current_block:
+            current_group.append(item)
+        else:
+            groups.append((current_block, current_group))
+            current_block = item["block"]
+            current_group = [item]
+    groups.append((current_block, current_group))
+    return groups
+
+
+def sort_group_by_parent_and_id(group: list[dict]) -> list[dict]:
+    """
+    For a given contiguous group of mapping items, further split the group into subgroups
+    that share the same parent (i.e. everything before the final '/'). Then, for each subgroup,
+    sort so that any item whose path ends with '/id' comes first.
+    The sorted subgroups are then concatenated in the original order.
+    """
+    sorted_list = []
+    current_subgroup = []
+    current_parent = None
+    for item in group:
+        parent = item["path"].rsplit("/", 1)[0] if "/" in item["path"] else item["path"]
+        if current_parent is None:
+            current_parent = parent
+        if parent == current_parent:
+            current_subgroup.append(item)
+        else:
+            sorted_subgroup = sorted(current_subgroup, key=lambda x: 0 if x["path"].endswith("/id") else 1)
+            sorted_list.extend(sorted_subgroup)
+            current_subgroup = [item]
+            current_parent = parent
+    if current_subgroup:
+        sorted_subgroup = sorted(current_subgroup, key=lambda x: 0 if x["path"].endswith("/id") else 1)
+        sorted_list.extend(sorted_subgroup)
+    return sorted_list
