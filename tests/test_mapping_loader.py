@@ -258,6 +258,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
 
     expected_mappings = [
         {
+            "block": "",
             "path": "/path",
             "title": "title",
             "description": "description",
@@ -268,6 +269,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "",
             "path": "/path2",
             "title": "title2",
             "description": "description2",
@@ -278,6 +280,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "text",
             "description": "description",
             "extension": "extension",
             "is_additional": True,
@@ -288,6 +291,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "title": "extension_field_title",
         },
         {
+            "block": "",
             "path": "/path",
             "title": "title",
             "description": "description",
@@ -298,6 +302,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "",
             "path": "/path2",
             "title": "title2",
             "description": "description2",
@@ -308,6 +313,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "text",
             "description": "description",
             "extension": "extension",
             "is_additional": True,
@@ -318,6 +324,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "title": "extension_field_title",
         },
         {
+            "block": "",
             "path": "/path",
             "title": "title",
             "description": "description",
@@ -328,6 +335,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "",
             "path": "/path2",
             "title": "title2",
             "description": "description2",
@@ -338,6 +346,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "text",
             "description": "description",
             "extension": "extension",
             "is_additional": True,
@@ -348,6 +357,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "title": "extension_field_title",
         },
         {
+            "block": "",
             "path": "/path",
             "title": "title",
             "description": "description",
@@ -358,6 +368,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "",
             "path": "/path2",
             "title": "title2",
             "description": "description2",
@@ -368,6 +379,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "text",
             "description": "description",
             "extension": "extension",
             "is_additional": True,
@@ -378,6 +390,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "title": "extension_field_title",
         },
         {
+            "block": "",
             "path": "/path",
             "title": "title",
             "description": "description",
@@ -388,6 +401,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "",
             "path": "/path2",
             "title": "title2",
             "description": "description2",
@@ -398,6 +412,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "text",
             "description": "description",
             "extension": "extension",
             "is_additional": True,
@@ -408,6 +423,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "title": "extension_field_title",
         },
         {
+            "block": "",
             "path": "/path",
             "title": "title",
             "description": "description",
@@ -418,6 +434,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "",
             "path": "/path2",
             "title": "title2",
             "description": "description2",
@@ -428,6 +445,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
             "is_additional": False,
         },
         {
+            "block": "text",
             "description": "description",
             "extension": "extension",
             "is_additional": True,
@@ -439,9 +457,11 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
         },
     ]
     mapping.get_mappings()
-    assert mapping.get_mappings() == expected_mappings
+    for mapp, expected in zip(mapping.mappings, expected_mappings):
+        assert mapp == expected
     assert mapping.get_mapping_for("path2") == [
         {
+            "block": "",
             "path": "/path2",
             "title": "title2",
             "description": "description2",

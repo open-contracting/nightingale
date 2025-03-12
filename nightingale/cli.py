@@ -131,6 +131,8 @@ def run(
             "publisher": publisher or config_data["publishing"]["publisher"],
             "base_uri": base_uri or config_data["publishing"]["base_uri"],
             "version": version or config_data["publishing"].get("version", ""),
+            "license": version or config_data["publishing"].get("license", ""),
+            "publicationPolicy": version or config_data["publishing"].get("publicationPolicy", ""),
             "publisher_uid": publisher_uid or config_data["publishing"].get("publisher_uid", ""),
             "publisher_scheme": publisher_scheme or config_data["publishing"].get("publisher_scheme", ""),
             "publisher_uri": publisher_uri or config_data["publishing"].get("publisher_uri", ""),
