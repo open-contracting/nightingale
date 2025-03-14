@@ -109,6 +109,7 @@ class OCDSDataMapper:
                 array_counters = {}
                 curr_release_dates = set()
                 ocids += 1
+                count = 0
 
             curr_release = self.transform_row(
                 row,
