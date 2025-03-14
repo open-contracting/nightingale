@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest import mock
 
-import dict_hash
+import deepdiff
 import pytest
 
 from nightingale.config import Config, Datasource, Mapping, Output, Publishing
@@ -405,7 +405,7 @@ def test_remove_empty_id_arrays(mock_config, base_config):
 
 
 def generate_hash(data):
-    return dict_hash.sha256(data)
+    return deepdiff.DeepHash(data, exclude_paths={"root['id']"})[data]
 
 
 @mock.patch("nightingale.mapper.get_iso_now")
