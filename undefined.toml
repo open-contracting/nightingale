@@ -94,14 +94,17 @@ SELECT
   BPP."Vendor Tag" AS "Vendor (VENDOR TAG)",
   BPP."Vendor Supplier Tag" AS "Vendor (SUPPLIER TAG)",
   BPP."Vendor Payee Tag" AS "Vendor (PAYEE TAG)",
+  BPP."Req - In Progress Date" AS "Requisition Status Dates (Req - In Progress Date)",
 
   -- for joins
   BRR."BuySpeed Abbreviation" AS "Bureau Reference Sheet (BuySpeed Abbreviation)",
   BPP."Alternate Id.1" AS "BuySpeed Project Projects (Alternate Id.1)"
 
 FROM [BuySpeed Project Projects] as BPP
-INNER JOIN [Bureau Reference Sheet] as BRR
+LEFT JOIN [Bureau Reference Sheet] as BRR
     ON BPP."Req Header Column 1 Value" = BRR."BuySpeed Abbreviation"
+
+ORDER BY BPP."REQ_NBR"
 """
 
 

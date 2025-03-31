@@ -85,7 +85,7 @@ SELECT
   -- procuring entity/parties
     POLR."Procuring Entity Tag" AS "PO Listing Report (PROCURING ENTITY TAG)",
     POLR."Buyer Tag" AS "PO Listing Report (BUYER TAG)",
-    POLR."Tender Tag" AS "Vendor (VENDOR TAG)",
+    POLR."Tenderer Tag" AS "Vendor (VENDOR TAG)",
     POLR."Supplier Tag" AS "Vendor (SUPPLIER TAG)",
     POLR."Payee Tag" AS "PO Listing Report (PAYER TAG)",
     POLR."Payee Tag" AS "Vendor (PAYEE TAG)",
@@ -94,7 +94,7 @@ SELECT
   POLR."Outline agreement" AS "Outline agreement"
 
 FROM [PO Listing Report] as POLR
-INNER JOIN AggregatedPO AS AggPO
+LEFT JOIN AggregatedPO AS AggPO
     ON AggPO.Purchasing_doc = POLR."Purchasing Document"
 LEFT JOIN "unit_classification" as UC ON POLR."Order Unit" = CASE
         WHEN UC.code = 'M4' THEN 'USD'

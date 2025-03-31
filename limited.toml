@@ -97,6 +97,7 @@ SELECT
   -- awards
   POLR."Purchasing Document" AS "Contract Listing Report (Purchasing Document)",
   POLR."Purchasing Document" AS "PO Listing Report (Purchasing Document)",
+  BPP."Alternate Id.1" AS "Purchase Order Header Table (Alternate Id)",
   POLR."CONTRACT ITEM ID" AS "PO Listing Report (CONTRACT ITEM ID)",
   AggPO."FULL ORDERS AMOUNT" AS "PO Listing Report (Gross order value)",
 
@@ -141,15 +142,16 @@ SELECT
   MGN.description AS "SAP/Material Group (NIGP) (description)",
   POLR."MILESTONE TYPE" AS "PO Listing Report (MILESTONE TYPE)",
   POLR."INVOICING STATUS" AS "PO Listing Report (INVOICING STATUS)",
+  BPP."Req - In Progress Date" AS "Requisition Status Dates (Req - In Progress Date)",
 
   -- for joins
   BRR."BuySpeed Abbreviation" AS "Bureau Reference Sheet (BuySpeed Abbreviation)",
   BPP."Alternate Id.1" AS "BuySpeed Project Projects (Alternate Id.1)",
   POLR."Outline agreement" AS "Outline agreement"
 FROM [BuySpeed Project Projects] as BPP
-INNER JOIN [Bureau Reference Sheet] as BRR
+LEFT JOIN [Bureau Reference Sheet] as BRR
     ON BPP."Req Header Column 1 Value" = BRR."BuySpeed Abbreviation"
-INNER JOIN "Procurement Method Details" as PMD
+LEFT JOIN "Procurement Method Details" as PMD
   ON BPP."PO Type Code" = PMD."Description"
 LEFT JOIN [PDX prequialification types] as PQT
     ON BPP."Bid Header Column 11 Value" = PQT."code"
@@ -164,6 +166,8 @@ LEFT JOIN "unit_classification" as UC ON POLR."Order Unit" = CASE
   END
 LEFT JOIN "material group nigp" as MGN
     on MGN.code = POLR."Material Group"
+
+ORDER BY BPP."REQ_NBR"
 """
 
 
