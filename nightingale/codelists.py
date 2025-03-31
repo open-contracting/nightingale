@@ -50,6 +50,9 @@ class CodelistsMapping:
                         # skip documentation header
                         continue
                     ocds, source_codelist, source_value = row[ocds_i], row[source_codelist_i], row[source_code_i]
+                    if ocds == "null":
+                        mappings[codelist][source_value] = ""
+                        continue
                     if not (source_codelist and source_value):
                         # no mapping available
                         continue
