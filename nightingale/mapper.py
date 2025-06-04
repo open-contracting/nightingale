@@ -90,6 +90,7 @@ class OCDSDataMapper:
         mapped = []
         count = 0
         ocids = 0
+        large_ocids = []
 
         ocid_mapping = mapping.get_ocid_mapping()
         for row in data:
@@ -121,13 +122,16 @@ class OCDSDataMapper:
                 curr_release_dates=curr_release_dates,
             )
             count += 1
-            logger.info(f"Processed {count} rows")
+            if count % 1000000 == 0:
+                large_ocids.append(ocid)
+                logger.info(f"Processed {count} rows")
 
         if curr_release:
             logger.info(f"Finishing release with {count} rows")
             max_date = max(curr_release_dates) if curr_release_dates else None
             self.finish_release(curr_ocid, curr_release, mapped, max_date)
         logger.info(f"Created {ocids} unique releases")
+        logger.info(f"A really gigantic {large_ocids} releases")
         return mapped
 
     def finish_release(self, curr_ocid, curr_release, mapped, release_date):
