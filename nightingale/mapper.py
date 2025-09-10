@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-import dict_hash
+import deepdiff
 
 from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
@@ -331,8 +331,8 @@ class OCDSDataMapper:
         :param curr_row: The current release row dictionary.
         :type curr_row: dict
         """
-        id_ = dict_hash.sha256(curr_row)
-        curr_row["id"] = id_
+        id_ = deepdiff.DeepHash(curr_row, exclude_paths={"root['id']"})
+        curr_row["id"] = id_[curr_row]
 
     def date_release(self, curr_row: dict, curr_date: str | None) -> None:
         """
