@@ -75,7 +75,7 @@ class DataWriter:
         """
         Starts a streaming write session. Writes package metadata and prepares for releases.
         """
-        buffer_size_str = os.getenv('APP_WRITE_BUFFER_SIZE', '8388608')
+        buffer_size_str = os.getenv("APP_WRITE_BUFFER_SIZE", "8388608")
         buffer_size = int(buffer_size_str)
         path = self.get_output_path(package_metadata)
         self._file_handler = path.open("w", encoding="utf-8", buffering=buffer_size)
@@ -103,7 +103,6 @@ class DataWriter:
         json.dump(release, self._file_handler, indent=4, ensure_ascii=False)
         self._is_first_release = False
         self._file_handler.flush()
-
 
     def end_package_stream(self) -> None:
         """

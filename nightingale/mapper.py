@@ -4,6 +4,7 @@ from typing import Any
 
 import dict_hash
 import simplejson as json
+from writer import DataWriter
 
 from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
@@ -16,7 +17,6 @@ from nightingale.utils import (
     remove_dicts_without_id,
     sort_group_by_parent_and_id,
 )
-from writer import DataWriter
 
 logger = logging.getLogger(__name__)
 
@@ -71,11 +71,13 @@ class OCDSDataMapper:
 
         try:
             self.release_lookup = {
-                row['code']: row for row in loader.load("SELECT code, title, description FROM [releases to Dte]")
+                row["code"]: row for row in loader.load("SELECT code, title, description FROM [releases to Dte]")
             }
             logger.info(f"Loaded {len(self.release_lookup)} entries from [releases to Dte] lookup.")
         except Exception as e:
-            logger.warning(f"Could not load [releases to Dte] lookup table: {e}. Milestone titles/descriptions may be missing.")
+            logger.warning(
+                f"Could not load [releases to Dte] lookup table: {e}. Milestone titles/descriptions may be missing."
+            )
 
         logger.info("MappingTemplate data loaded")
         data = loader.load(config.selector)
@@ -226,7 +228,7 @@ class OCDSDataMapper:
                 nested_dict = self.shift_current_array(nested_dict, subpath, array_counters)
 
             if isinstance(nested_dict, list):
-                if keys_path.startswith('/contracts/milestones'):
+                if keys_path.startswith("/contracts/milestones"):
                     contract_id_map = mapping_config.get_mapping_for("/contracts/id")
                     if contract_id_map:
                         contract_id_col = contract_id_map[0]["mapping"]
@@ -240,7 +242,7 @@ class OCDSDataMapper:
                 if add_new:
                     if isinstance(value, dict):
                         if last_key not in nested_dict:
-                             nested_dict[last_key] = []
+                            nested_dict[last_key] = []
                         nested_dict[last_key].append(value)
                     else:
                         if last_key not in nested_dict:
@@ -263,10 +265,10 @@ class OCDSDataMapper:
                 else:
                     subpath = "/" + "/".join(keys)
                     if schema.get(subpath, {}).get("type") == "array" and not isinstance(value, list):
-                        if add_new and isinstance(value, dict): # Milestone logic
-                           value = [value]
+                        if add_new and isinstance(value, dict):  # Milestone logic
+                            value = [value]
                         else:
-                           value = [value]
+                            value = [value]
                     nested_dict[last_key] = value
 
         if not result:
@@ -318,9 +320,11 @@ class OCDSDataMapper:
                                 break
 
                         if found_contract and found_contract.get("milestones"):
-                            if any(m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]):
-                                 contract_milestones_processed_for_this_row = True
-                                 continue
+                            if any(
+                                m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]
+                            ):
+                                contract_milestones_processed_for_this_row = True
+                                continue
                     codes = value.split()
                     if not codes:
                         continue
@@ -341,8 +345,8 @@ class OCDSDataMapper:
                         title = None
                         description = None
                         if lookup_data := self.release_lookup.get(code):
-                            title = lookup_data.get('title')
-                            description = lookup_data.get('description')
+                            title = lookup_data.get("title")
+                            description = lookup_data.get("description")
 
                         milestone_obj = {
                             "id": f"{base_id}-{code}" if base_id else code,
@@ -350,12 +354,12 @@ class OCDSDataMapper:
                             "type": m_type,
                             "description": description,
                             "code": code,
-                            "status": m_status
+                            "status": m_status,
                         }
 
                         milestone_obj = {k: v for k, v in milestone_obj.items() if v is not None}
 
-                        milestone_keys = path.strip("/").split("/")[:-1] # ['contracts', 'milestones']
+                        milestone_keys = path.strip("/").split("/")[:-1]  # ['contracts', 'milestones']
                         set_nested_value(result, milestone_keys, milestone_obj, flattened_schema, add_new=True)
 
                     contract_milestones_processed_for_this_row = True
