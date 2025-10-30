@@ -1,7 +1,9 @@
 import logging
+import time
 from typing import Any
 
 import dict_hash
+import simplejson as json
 
 from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
@@ -14,6 +16,7 @@ from nightingale.utils import (
     remove_dicts_without_id,
     sort_group_by_parent_and_id,
 )
+from writer import DataWriter
 
 logger = logging.getLogger(__name__)
 
@@ -26,18 +29,22 @@ class OCDSDataMapper:
     :type config: Config
     """
 
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, writer: DataWriter | None = None):
         """
         Initialize the OCDSDataMapper.
 
         :param config: Configuration object containing settings for the mapper.
         :type config: Config
+        :param writer: Optional DataWriter instance for streaming output.
         """
         self.config = config
         self.mapping = MappingTemplate(config.mapping)
+        self.writer = writer
         self.codelists = None
         if self.config.mapping.codelists:
             self.codelists = CodelistsMapping(self.config.mapping)
+
+        self.release_lookup = {}
 
     def produce_ocid(self, value: str) -> str:
         """
@@ -61,6 +68,14 @@ class OCDSDataMapper:
         :rtype: list[dict[str, Any]]
         """
         config = self.config.mapping
+
+        try:
+            self.release_lookup = {
+                row['code']: row for row in loader.load("SELECT code, title, description FROM [releases to Dte]")
+            }
+            logger.info(f"Loaded {len(self.release_lookup)} entries from [releases to Dte] lookup.")
+        except Exception as e:
+            logger.warning(f"Could not load [releases to Dte] lookup table: {e}. Milestone titles/descriptions may be missing.")
 
         logger.info("MappingTemplate data loaded")
         data = loader.load(config.selector)
@@ -90,7 +105,9 @@ class OCDSDataMapper:
         mapped = []
         count = 0
         ocids = 0
-        large_ocids = []
+        large_ocids = {}
+        slow_ocids = {}
+        start_time_ocid = None
 
         ocid_mapping = mapping.get_ocid_mapping()
         for row in data:
@@ -101,14 +118,25 @@ class OCDSDataMapper:
                 continue
             if not curr_ocid:
                 curr_ocid = ocid
+                start_time_ocid = time.time()
             if curr_ocid != ocid:
                 logger.info(f"Finishing release with {count} rows")
                 max_date = max(curr_release_dates) if curr_release_dates else None
                 self.finish_release(curr_ocid, curr_release, mapped, max_date)
+                duration = time.time() - start_time_ocid
+                minutes, seconds = divmod(int(duration), 60)
+                logger.info(f"Release mapped: ocds-ptecst-{curr_ocid} in {minutes}m {seconds}s")
+                if count >= 500000:
+                    large_ocids[curr_ocid] = count
+                if duration > 18000:  # over 5 hour
+                    slow_ocids[curr_ocid] = round(duration / 60, 1)
+
+                logger.info(f"Start mapping: {ocid}")
                 curr_ocid = ocid
                 curr_release = {}
                 array_counters = {}
                 curr_release_dates = set()
+                start_time_ocid = time.time()
                 ocids += 1
                 count = 0
 
@@ -122,16 +150,24 @@ class OCDSDataMapper:
                 curr_release_dates=curr_release_dates,
             )
             count += 1
-            if count % 1000000 == 0:
-                large_ocids.append(ocid)
+            if count % 500000 == 0:
                 logger.info(f"Processed {count} rows")
 
         if curr_release:
             logger.info(f"Finishing release with {count} rows")
             max_date = max(curr_release_dates) if curr_release_dates else None
             self.finish_release(curr_ocid, curr_release, mapped, max_date)
+            duration = time.time() - start_time_ocid
+            minutes, seconds = divmod(int(duration), 60)
+            logger.info(f"Release mapped: ocds-ptecst-{curr_ocid} in {minutes}m {seconds}s")
+            if count >= 500000:
+                large_ocids[curr_ocid] = count
+            if duration > 18000:  # over 5 hour
+                slow_ocids[curr_ocid] = round(duration / 60, 1)
+
         logger.info(f"Created {ocids} unique releases")
-        logger.info(f"A really gigantic {large_ocids} releases")
+        logger.info(f"A really gigantic releases (> 500K rows): {large_ocids}")
+        logger.info(f"Slow releases (>5 hours): {slow_ocids}")
         return mapped
 
     def finish_release(self, curr_ocid, curr_release, mapped, release_date):
@@ -141,8 +177,11 @@ class OCDSDataMapper:
         self.tag_ocid(curr_release, curr_ocid)
         self.generate_tags(curr_release)
         self.make_release_id(curr_release)
-        logger.info(f"Release mapped: {curr_release['ocid']}")
-        mapped.append(curr_release)
+
+        if self.writer and self.writer.is_streaming():
+            self.writer.stream_release(curr_release)
+        else:
+            mapped.append(curr_release)
 
     def transform_row(
         self,
@@ -187,13 +226,28 @@ class OCDSDataMapper:
                 nested_dict = self.shift_current_array(nested_dict, subpath, array_counters)
 
             if isinstance(nested_dict, list):
-                nested_dict = self.shift_current_array(nested_dict, keys_path, array_counters)
+                if keys_path.startswith('/contracts/milestones'):
+                    contract_id_map = mapping_config.get_mapping_for("/contracts/id")
+                    if contract_id_map:
+                        contract_id_col = contract_id_map[0]["mapping"]
+                        contract_id = input_data.get(contract_id_col)
+                        nested_dict = find_array_element_by_id(nested_dict, contract_id)
+                    else:
+                        nested_dict = self.shift_current_array(nested_dict, keys_path, array_counters)
+                else:
+                    nested_dict = self.shift_current_array(nested_dict, keys_path, array_counters)
+
                 if add_new:
-                    if last_key not in nested_dict:
-                        nested_dict[last_key] = []
-                    if value in nested_dict[last_key] and append_once:
-                        return
-                    nested_dict[last_key].append(value)
+                    if isinstance(value, dict):
+                        if last_key not in nested_dict:
+                             nested_dict[last_key] = []
+                        nested_dict[last_key].append(value)
+                    else:
+                        if last_key not in nested_dict:
+                            nested_dict[last_key] = []
+                        if value in nested_dict[last_key] and append_once:
+                            return
+                        nested_dict[last_key].append(value)
                 else:
                     nested_dict[last_key] = value
             else:
@@ -209,12 +263,17 @@ class OCDSDataMapper:
                 else:
                     subpath = "/" + "/".join(keys)
                     if schema.get(subpath, {}).get("type") == "array" and not isinstance(value, list):
-                        value = [value]
+                        if add_new and isinstance(value, dict): # Milestone logic
+                           value = [value]
+                        else:
+                           value = [value]
                     nested_dict[last_key] = value
 
         if not result:
             result = {}
         datetime_paths = self.mapping.get_datetime_fields()
+
+        contract_milestones_processed_for_this_row = False
 
         skip_criteria_processing = False
 
@@ -232,6 +291,79 @@ class OCDSDataMapper:
                 if not value:
                     continue
                 path = mapping["path"]
+
+                if contract_milestones_processed_for_this_row and path.startswith("/contracts/milestones/"):
+                    continue
+
+                if path in ("/contracts/milestones/id", "/contracts/milestones/type", "/contracts/milestones/status"):
+                    code_mapping = mapping_config.get_mapping_for("/contracts/milestones/code")
+                    if code_mapping:
+                        code_col = code_mapping[0]["mapping"]
+                        code_val = input_data.get(code_col)
+                        if isinstance(code_val, str) and " " in code_val:
+                            continue
+
+                if path == "/contracts/milestones/code" and isinstance(value, str) and " " in value:
+                    current_contract_id = None
+                    contract_id_map = mapping_config.get_mapping_for("/contracts/id")
+                    if contract_id_map:
+                        contract_id_col = contract_id_map[0]["mapping"]
+                        current_contract_id = input_data.get(contract_id_col)
+
+                    if current_contract_id:
+                        found_contract = None
+                        for contract in result.get("contracts", []):
+                            if contract.get("id") == current_contract_id:
+                                found_contract = contract
+                                break
+
+                        if found_contract and found_contract.get("milestones"):
+                            if any(m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]):
+                                 contract_milestones_processed_for_this_row = True
+                                 continue
+                    codes = value.split()
+                    if not codes:
+                        continue
+
+                    base_id_map = mapping_config.get_mapping_for("/contracts/milestones/id")
+                    type_map = mapping_config.get_mapping_for("/contracts/milestones/type")
+                    status_map = mapping_config.get_mapping_for("/contracts/milestones/status")
+
+                    base_id_col = base_id_map[0]["mapping"] if base_id_map else None
+                    type_col = type_map[0]["mapping"] if type_map else None
+                    status_col = status_map[0]["mapping"] if status_map else None
+
+                    base_id = input_data.get(base_id_col, "") if base_id_col else ""
+                    m_type = input_data.get(type_col) if type_col else None
+                    m_status = input_data.get(status_col) if status_col else None
+
+                    for code in codes:
+                        title = None
+                        description = None
+                        if lookup_data := self.release_lookup.get(code):
+                            title = lookup_data.get('title')
+                            description = lookup_data.get('description')
+
+                        milestone_obj = {
+                            "id": f"{base_id}-{code}" if base_id else code,
+                            "title": title,
+                            "type": m_type,
+                            "description": description,
+                            "code": code,
+                            "status": m_status
+                        }
+
+                        milestone_obj = {k: v for k, v in milestone_obj.items() if v is not None}
+
+                        milestone_keys = path.strip("/").split("/")[:-1] # ['contracts', 'milestones']
+                        set_nested_value(result, milestone_keys, milestone_obj, flattened_schema, add_new=True)
+
+                    contract_milestones_processed_for_this_row = True
+                    continue
+
+                if path.startswith("/contracts/milestones/") and contract_milestones_processed_for_this_row:
+                    continue
+
                 if "/tender/selectionCriteria/criteria" in path and skip_criteria_processing:
                     continue
                 if path in datetime_paths and value:
