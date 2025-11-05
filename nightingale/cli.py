@@ -49,6 +49,7 @@ def load_config(config_file):
     required=True,
 )
 @click.option("--package", is_flag=True, default=False, help="Package data")
+@click.option("--stream", is_flag=True, default=True, help="Enable streaming to output file")
 @click.option("--validate-mapping", is_flag=True, default=False, help="Validate mapping template")
 @click.option(
     "--loglevel",
@@ -73,6 +74,7 @@ def load_config(config_file):
 def run(
     config_file,
     package,
+    stream,
     validate_mapping,
     loglevel,
     datasource,
@@ -101,6 +103,7 @@ def run(
     setup_logging(loglevel)
     logger.info("Starting data transformation")
 
+    writer = None
     try:
         logger.debug(f"Loading configuration from {config_file}")
         config_data = {}
@@ -143,22 +146,47 @@ def run(
 
         # Validate final configuration
         config = TypeAdapter(Config).validate_python(config_data)
-        mapper = OCDSDataMapper(config)
         writer = DataWriter(config.output)
 
-        ocds_data = mapper.map(DataLoader(config.datasource), validate_mapping=validate_mapping)
+        if stream:
+            logger.info("Starting stream-based processing...")
 
-        if package:
-            logger.info("Packaging data...")
+            # Create mapper first to get access to the mapping template
+            mapper = OCDSDataMapper(config, writer=writer)
+
+            # Now create packer with the loaded mapping
             packer = DataPublisher(config.publishing, mapper.mapping)
-            ocds_data = packer.package(ocds_data)
-        logger.info("Writing data...")
-        writer.write(ocds_data)
+            package_metadata = packer.package([])
+            del package_metadata["releases"]
+
+            writer.start_package_stream(package_metadata)
+
+            # The mapper already has the writer instance, so we can just call map
+            mapper.map(DataLoader(config.datasource), validate_mapping=validate_mapping)
+            logger.info("Streaming data completed.")
+
+        else:
+            logger.info("Starting in-memory processing...")
+            mapper = OCDSDataMapper(config)
+            ocds_data = mapper.map(DataLoader(config.datasource), validate_mapping=validate_mapping)
+
+            if package:
+                logger.info("Packaging data...")
+                packer = DataPublisher(config.publishing, mapper.mapping)
+                ocds_data = packer.package(ocds_data)
+
+            logger.info("Writing data...")
+            writer.write(ocds_data)
+
         logger.info("Data transformation completed successfully")
 
     except Exception as e:
         click.echo(traceback.format_exc())
         raise click.ClickException(f"Error during transformation: {e}")
+    finally:
+        if writer and writer.is_streaming():
+            logger.info("Finalizing stream file...")
+            writer.end_package_stream()
 
 
 if __name__ == "__main__":
