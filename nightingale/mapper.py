@@ -4,7 +4,6 @@ from typing import Any
 
 import dict_hash
 import simplejson as json
-from nightingale.writer import DataWriter
 
 from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
@@ -17,6 +16,7 @@ from nightingale.utils import (
     remove_dicts_without_id,
     sort_group_by_parent_and_id,
 )
+from nightingale.writer import DataWriter
 
 logger = logging.getLogger(__name__)
 
