@@ -4,7 +4,7 @@ from typing import Any
 
 import dict_hash
 import simplejson as json
-from writer import DataWriter
+from nightingale.writer import DataWriter
 
 from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
