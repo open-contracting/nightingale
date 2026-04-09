@@ -85,3 +85,6 @@ addopts = "--doctest-modules"
 strict = true
 warn_unreachable = true
 exclude = "(build|docs|tests)/"
+
+[tool.uv.pip]
+exclude-newer = "1 week"
