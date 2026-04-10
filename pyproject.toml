@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "ocdsnightingale"
 version = "0.0.1"
 authors = [{name = "Open Contracting Partnership", email = "data@open-contracting.org"}]
-description = "An ETL to transform US cities procurement data into OCDS format."
+description = "Transform flat data from a SQLite database into the Open Contracting Data Standard (OCDS) format."
 readme = "README.md"
 license = {text = "BSD"}
 urls = {Homepage = "https://github.com/open-contracting/nightingale"}
@@ -97,13 +97,13 @@ ignore-variadic-names = true
 ]
 "nightingale/cli.py" = ["BLE001", "TRY003"]  # click
 
-[tool.pytest.ini_options]
-addopts = "--doctest-modules"
-
 [tool.mypy]
 strict = true
 warn_unreachable = true
 exclude = "(build|docs|tests)/"
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules"
 
 [tool.uv.pip]
 exclude-newer = "1 week"

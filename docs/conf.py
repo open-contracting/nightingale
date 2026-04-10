@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "nightingale"
+project = "OCDS Nightingale"
 copyright = "2024, Open Contracting Partnership"
 author = "Open Contracting Partnership"
 
