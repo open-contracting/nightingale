@@ -388,13 +388,16 @@ class OCDSDataMapper:
                         set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
                         continue
                     if "criteria" in path:
-                        if child_path != "criteria":
-                            if result.get("tender") and result["tender"].get("selectionCriteria", None):
-                                if (
-                                    len(result["tender"]["selectionCriteria"]["criteria"]) == 0
-                                    or last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1]
-                                ):
-                                    result["tender"]["selectionCriteria"]["criteria"].append({})
+                        if (
+                            child_path != "criteria"
+                            and result.get("tender")
+                            and result["tender"].get("selectionCriteria", None)
+                            and (
+                                len(result["tender"]["selectionCriteria"]["criteria"]) == 0
+                                or last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1]
+                            )
+                        ):
+                            result["tender"]["selectionCriteria"]["criteria"].append({})
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
                             array_counters[array_path] = array_value
@@ -412,18 +415,17 @@ class OCDSDataMapper:
                         current = current[key]
                         if is_array:
                             if "criteria" in path:
-                                if child_path != "criteria":
-                                    if result["tender"].get("selectionCriteria", None):
-                                        for index, criterion in enumerate(
-                                            result["tender"]["selectionCriteria"]["criteria"]
-                                        ):
-                                            if last_key_name not in criterion or len(criterion) == 0:
-                                                if last_key_name != "minimum":
-                                                    current = result["tender"]["selectionCriteria"]["criteria"][index]
-                                                    break
-                                                if len(criterion) == 0 or criterion.get("type", "") == "economic":
-                                                    current = result["tender"]["selectionCriteria"]["criteria"][index]
-                                                    break
+                                if child_path != "criteria" and result["tender"].get("selectionCriteria", None):
+                                    for index, criterion in enumerate(
+                                        result["tender"]["selectionCriteria"]["criteria"]
+                                    ):
+                                        if last_key_name not in criterion or len(criterion) == 0:
+                                            if last_key_name != "minimum":
+                                                current = result["tender"]["selectionCriteria"]["criteria"][index]
+                                                break
+                                            if len(criterion) == 0 or criterion.get("type", "") == "economic":
+                                                current = result["tender"]["selectionCriteria"]["criteria"][index]
+                                                break
 
                             else:
                                 current = self.shift_current_array(current, current_path, array_counters)
