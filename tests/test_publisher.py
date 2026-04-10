@@ -26,7 +26,7 @@ class TestDataPublisher(unittest.TestCase):
         package = self.publisher.package(self.data)
         assert package["version"] == self.config.version
         assert package["license"] == self.config.license
-        assert package["publicationPolicy"] == self.config.publicationPolicy
+        assert package["publicationPolicy"] == self.config.publication_policy
         assert package["publisher"] == {
             "name": self.config.publisher,
             "scheme": self.config.publisher_scheme,

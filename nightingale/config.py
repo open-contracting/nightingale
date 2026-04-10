@@ -1,7 +1,7 @@
 import tomllib
 from pathlib import Path
 
-from pydantic import TypeAdapter
+from pydantic import Field, TypeAdapter
 from pydantic.dataclasses import dataclass
 
 
@@ -24,7 +24,7 @@ class Publishing:
     publisher_scheme: str = ""
     publisher_uri: str = ""
     license: str = ""
-    publicationPolicy: str = ""
+    publication_policy: str = Field(default="", alias="publicationPolicy")
 
 
 @dataclass(frozen=True)

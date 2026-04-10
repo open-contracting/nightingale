@@ -44,8 +44,8 @@ class DataPublisher:
             extensions=self.get_extensions(),
             version=self.config.version or "1.1",
         )
-        for key in ("license", "publicationPolicy"):
-            if value := getattr(self.config, key, None):
+        for attr, key in (("license", "license"), ("publication_policy", "publicationPolicy")):
+            if value := getattr(self.config, attr, None):
                 package[key] = value
         return package
 
