@@ -23,6 +23,7 @@ release = version
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.extlinks",
     "sphinx.ext.intersphinx",
     "sphinx.ext.viewcode",
 ]
@@ -47,4 +48,8 @@ autodoc_type_aliases = {}
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+}
+
+extlinks = {
+    "commit": ("https://github.com/open-contracting/nightingale/commit/%s", "%s"),
 }
