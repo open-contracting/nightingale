@@ -19,6 +19,9 @@ from nightingale.writer import DataWriter
 
 logger = logging.getLogger(__name__)
 
+LARGE_RELEASE_ROW_THRESHOLD = 500_000
+SLOW_RELEASE_SECONDS = 18_000  # 5 hours
+
 
 class OCDSDataMapper:
     """
@@ -127,9 +130,9 @@ class OCDSDataMapper:
                 duration = time.time() - start_time_ocid
                 minutes, seconds = divmod(int(duration), 60)
                 logger.info("Release mapped: ocds-ptecst-%s in %dm %ds", curr_ocid, minutes, seconds)
-                if count >= 500000:
+                if count >= LARGE_RELEASE_ROW_THRESHOLD:
                     large_ocids[curr_ocid] = count
-                if duration > 18000:  # over 5 hour
+                if duration > SLOW_RELEASE_SECONDS:
                     slow_ocids[curr_ocid] = round(duration / 60, 1)
 
                 logger.info("Start mapping: %s", ocid)
@@ -151,7 +154,7 @@ class OCDSDataMapper:
                 curr_release_dates=curr_release_dates,
             )
             count += 1
-            if count % 500000 == 0:
+            if count % LARGE_RELEASE_ROW_THRESHOLD == 0:
                 logger.info("Processed %d rows", count)
 
         if curr_release:
@@ -161,9 +164,9 @@ class OCDSDataMapper:
             duration = time.time() - start_time_ocid
             minutes, seconds = divmod(int(duration), 60)
             logger.info("Release mapped: ocds-ptecst-%s in %dm %ds", curr_ocid, minutes, seconds)
-            if count >= 500000:
+            if count >= LARGE_RELEASE_ROW_THRESHOLD:
                 large_ocids[curr_ocid] = count
-            if duration > 18000:  # over 5 hour
+            if duration > SLOW_RELEASE_SECONDS:
                 slow_ocids[curr_ocid] = round(duration / 60, 1)
 
         logger.info("Created %d unique releases", ocids)
