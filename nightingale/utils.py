@@ -1,6 +1,4 @@
-from datetime import datetime
-
-from pytz import timezone
+from datetime import UTC, datetime
 
 
 def produce_package_name(date) -> str:
@@ -25,9 +23,7 @@ def remove_dicts_without_id(data):
 
 
 def get_iso_now():
-    pacific = timezone("America/Los_Angeles")
-    now = datetime.now(pacific)
-    return now.strftime("%Y-%m-%dT%H:%M:%S%z")[:-2] + ":" + now.strftime("%Y-%m-%dT%H:%M:%S%z")[-2:]
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def is_new_array(array_counters: dict, child_path: str, array_key: str, array_value: str, array_path: str) -> bool:

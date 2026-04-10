@@ -14,6 +14,13 @@ Fixed
 Changed
 ~~~~~~~
 
+-  Datetimes use UTC with a ``Z`` suffix (``2026-04-10T21:30:00Z``) instead of US Pacific with an offset (``2026-04-10T14:30:00-07:00``). This affects:
+
+   - the release's ``date``, when not derivable from data
+   - the package's ``publishedDate``
+   - the package's ``uri``
+   - the package's filename
+
 -  Keyword arguments are required for boolean arguments: :commit:`4268fcc`
 
    -  :meth:`nightingale.mapper.OCDSDataMapper.map`
