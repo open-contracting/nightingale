@@ -61,18 +61,19 @@ class MappingTemplate:
                 case "field" | "required_field" | "extension_field" | "additional_field":
                     if not mapping:
                         continue
-                    row = {
-                        "block": current_block,
-                        "path": path if path.startswith("/") else "/" + path,
-                        "title": title,
-                        "description": description,
-                        "mapping": mapping,
-                        "is_extensions": in_extensions,
-                        "extension": current_extension,
-                        "is_required": column_type == "required_field",
-                        "is_additional": column_type == "additional_field",
-                    }
-                    mappings.append(row)
+                    mappings.append(
+                        {
+                            "block": current_block,
+                            "path": path if path.startswith("/") else "/" + path,
+                            "title": title,
+                            "description": description,
+                            "mapping": mapping,
+                            "is_extensions": in_extensions,
+                            "extension": current_extension,
+                            "is_required": column_type == "required_field",
+                            "is_additional": column_type == "additional_field",
+                        }
+                    )
                 case "subtitle" | "required_span":
                     continue
                 case "section":
