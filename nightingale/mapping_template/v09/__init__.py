@@ -135,19 +135,19 @@ class MappingTemplate:
         schema = {}
         for sheet in sheets:
             for row in sheet.iter_rows(min_row=2, values_only=True):
-                _, path, title, description, type, range, values, links, codelist, *_ = row
+                _, path, title, description, field_type, field_range, values, links, codelist, *_ = row
                 if not path:
                     continue
                 path = "/" + path
 
-                if path in schema and type == "object":
+                if path in schema and field_type == "object":
                     # this is a nested object inside arrray we are interested in parrent array path
                     continue
                 schema[path] = {
                     "title": title,
                     "description": description,
-                    "type": "array" if type and "array" in type.lower() else type,
-                    "range": range,
+                    "type": "array" if field_type and "array" in field_type.lower() else field_type,
+                    "range": field_range,
                     "values": values,
                     "links": links,
                     "codelist": codelist,
