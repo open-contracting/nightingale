@@ -26,8 +26,7 @@ class DataPublisher:
 
         :return: The produced URI.
         """
-        full_name = produce_package_name(self.date)
-        return urljoin(self.config.base_uri, f"/{full_name}")
+        return urljoin(self.config.base_uri, f"/{produce_package_name(self.date)}")
 
     def package(self, data: list[dict[str, Any]]) -> dict[str, Any]:
         """

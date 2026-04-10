@@ -58,8 +58,7 @@ class OCDSDataMapper:
         :return: The produced OCID.
         :rtype: str
         """
-        prefix = self.config.mapping.ocid_prefix
-        return f"{prefix}-{value}"
+        return f"{self.config.mapping.ocid_prefix}-{value}"
 
     def map(self, loader: Any, *, validate_mapping: bool = False) -> list[dict[str, Any]]:
         """
@@ -452,8 +451,7 @@ class OCDSDataMapper:
         :param curr_row: The current release row dictionary.
         :type curr_row: dict
         """
-        id_ = dict_hash.sha256(curr_row)
-        curr_row["id"] = id_
+        curr_row["id"] = dict_hash.sha256(curr_row)
 
     def date_release(self, curr_row: dict, curr_date: str | None) -> None:
         """
@@ -462,8 +460,7 @@ class OCDSDataMapper:
         :param curr_row: The current release row dictionary.
         :type curr_row: dict
         """
-        date = curr_date or get_iso_now()
-        curr_row["date"] = date
+        curr_row["date"] = curr_date or get_iso_now()
 
     def tag_initiation_type(self, curr_row: dict) -> None:
         """
