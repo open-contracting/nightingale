@@ -1,17 +1,33 @@
-/*.egg-info
+# Editor
+*.swp
+*~
+
+# Virtual environment
+/.ve
+/.venv
+
+# Bytecode
+__pycache__
+*.pyc
+
+# Coverage
 /.coverage
+/htmlcov
+
+# Sphinx
+/docs/_build
+
+# Distribution
+/*.egg-info
 /build
 /dist
-/docs/_build
-/htmlcov
-/.venv/
+
+# IDE
 /.idea/
+
+# OS
 .DS_Store
+
+# Project-specific
 /csvs/
 /input/
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.sublime-workspace
-*.sublime-project
