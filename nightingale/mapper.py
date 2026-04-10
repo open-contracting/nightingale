@@ -175,7 +175,7 @@ class OCDSDataMapper:
     def finish_release(self, curr_ocid, curr_release, mapped, release_date):
         curr_release = self.remove_empty_id_arrays(curr_release)
         self.tag_initiation_type(curr_release)
-        # self.date_release(curr_release, release_date)
+        self.date_release(curr_release, release_date)
         self.tag_ocid(curr_release, curr_ocid)
         self.generate_tags(curr_release)
         self.make_release_id(curr_release)
