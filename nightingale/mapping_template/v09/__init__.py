@@ -180,7 +180,7 @@ class MappingTemplate:
             path = "/" + path
         return [mapping for mapping in self.get_mappings() if mapping["path"] == path]
 
-    def get_paths_for_mapping(self, key, force_publish=False):
+    def get_paths_for_mapping(self, key, *, force_publish=False):
         result = []
         for mapping in self.get_mappings():
             if mapping["mapping"] == key:

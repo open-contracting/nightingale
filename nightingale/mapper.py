@@ -57,7 +57,7 @@ class OCDSDataMapper:
         prefix = self.config.mapping.ocid_prefix
         return f"{prefix}-{value}"
 
-    def map(self, loader: Any, validate_mapping: bool = False) -> list[dict[str, Any]]:
+    def map(self, loader: Any, *, validate_mapping: bool = False) -> list[dict[str, Any]]:
         """
         Map data from the loader to the OCDS format.
 
@@ -209,7 +209,7 @@ class OCDSDataMapper:
         :rtype: dict
         """
 
-        def set_nested_value(nested_dict, keys, value, schema, add_new=False, append_once=False):
+        def set_nested_value(nested_dict, keys, value, schema, *, add_new=False, append_once=False):
             value = self.map_codelist_value(keys, schema, codelists, value)
             last_key = keys[-1]
             keys_path = "/" + "/".join(keys)
@@ -398,7 +398,7 @@ class OCDSDataMapper:
                             set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=add_new)
                     elif last_key_name == "id":
                         array_counters[array_path] = array_value
-                        set_nested_value(result, keys[:-1], {}, flattened_schema, True)
+                        set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=True)
 
                     current: Any = result
                     for i, key in enumerate(keys[:-1]):
