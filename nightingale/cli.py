@@ -37,7 +37,7 @@ def load_config(config_file):
         with config_file.open("rb") as f:
             return tomllib.load(f)
     except tomllib.TOMLDecodeError:
-        raise click.ClickException(f"Error decoding TOML from {config_file}.")
+        raise click.ClickException(f"Error decoding TOML from {config_file}.") from None
 
 
 @click.command()
@@ -105,7 +105,7 @@ def run(
 
     writer = None
     try:
-        logger.debug(f"Loading configuration from {config_file}")
+        logger.debug("Loading configuration from %s", config_file)
         config_data = {}
         if config_file:
             config_data = load_config(config_file)
@@ -118,7 +118,7 @@ def run(
                 with selector.open() as f:
                     config_data["mapping"]["selector"] = f.read()
             except OSError as e:
-                raise click.ClickException(f"Error reading selector file {selector}: {e}")
+                raise click.ClickException(f"Error reading selector file {selector}: {e}") from None
         if mapping_file:
             config_data["mapping"]["file"] = mapping_file
         if codelists_file:
@@ -182,7 +182,7 @@ def run(
 
     except Exception as e:
         click.echo(traceback.format_exc())
-        raise click.ClickException(f"Error during transformation: {e}")
+        raise click.ClickException(f"Error during transformation: {e}") from None
     finally:
         if writer and writer.is_streaming():
             logger.info("Finalizing stream file...")

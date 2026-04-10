@@ -72,10 +72,10 @@ class OCDSDataMapper:
             self.release_lookup = {
                 row["code"]: row for row in loader.load("SELECT code, title, description FROM [releases to Dte]")
             }
-            logger.info(f"Loaded {len(self.release_lookup)} entries from [releases to Dte] lookup.")
+            logger.info("Loaded %d entries from [releases to Dte] lookup.", len(self.release_lookup))
         except Exception as e:
             logger.warning(
-                f"Could not load [releases to Dte] lookup table: {e}. Milestone titles/descriptions may be missing."
+                "Could not load [releases to Dte] lookup table: %s. Milestone titles/descriptions may be missing.", e
             )
 
         logger.info("MappingTemplate data loaded")
@@ -115,24 +115,24 @@ class OCDSDataMapper:
             ocid = row.get(ocid_mapping, "")
 
             if not ocid:
-                logger.warning(f"No OCID found in row: {row}. Skipping.")
+                logger.warning("No OCID found in row: %s. Skipping.", row)
                 continue
             if not curr_ocid:
                 curr_ocid = ocid
                 start_time_ocid = time.time()
             if curr_ocid != ocid:
-                logger.info(f"Finishing release with {count} rows")
+                logger.info("Finishing release with %d rows", count)
                 max_date = max(curr_release_dates) if curr_release_dates else None
                 self.finish_release(curr_ocid, curr_release, mapped, max_date)
                 duration = time.time() - start_time_ocid
                 minutes, seconds = divmod(int(duration), 60)
-                logger.info(f"Release mapped: ocds-ptecst-{curr_ocid} in {minutes}m {seconds}s")
+                logger.info("Release mapped: ocds-ptecst-%s in %dm %ds", curr_ocid, minutes, seconds)
                 if count >= 500000:
                     large_ocids[curr_ocid] = count
                 if duration > 18000:  # over 5 hour
                     slow_ocids[curr_ocid] = round(duration / 60, 1)
 
-                logger.info(f"Start mapping: {ocid}")
+                logger.info("Start mapping: %s", ocid)
                 curr_ocid = ocid
                 curr_release = {}
                 array_counters = {}
@@ -152,23 +152,23 @@ class OCDSDataMapper:
             )
             count += 1
             if count % 500000 == 0:
-                logger.info(f"Processed {count} rows")
+                logger.info("Processed %d rows", count)
 
         if curr_release:
-            logger.info(f"Finishing release with {count} rows")
+            logger.info("Finishing release with %d rows", count)
             max_date = max(curr_release_dates) if curr_release_dates else None
             self.finish_release(curr_ocid, curr_release, mapped, max_date)
             duration = time.time() - start_time_ocid
             minutes, seconds = divmod(int(duration), 60)
-            logger.info(f"Release mapped: ocds-ptecst-{curr_ocid} in {minutes}m {seconds}s")
+            logger.info("Release mapped: ocds-ptecst-%s in %dm %ds", curr_ocid, minutes, seconds)
             if count >= 500000:
                 large_ocids[curr_ocid] = count
             if duration > 18000:  # over 5 hour
                 slow_ocids[curr_ocid] = round(duration / 60, 1)
 
-        logger.info(f"Created {ocids} unique releases")
-        logger.info(f"A really gigantic releases (> 500K rows): {large_ocids}")
-        logger.info(f"Slow releases (>5 hours): {slow_ocids}")
+        logger.info("Created %d unique releases", ocids)
+        logger.info("A really gigantic releases (> 500K rows): %s", large_ocids)
+        logger.info("Slow releases (>5 hours): %s", slow_ocids)
         return mapped
 
     def finish_release(self, curr_ocid, curr_release, mapped, release_date):

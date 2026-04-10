@@ -105,7 +105,7 @@ class TestMappingTemplateValidator(unittest.TestCase):
         self.validator.validate_data_elements()
 
         # Check if a warning was logged for the missing column
-        mock_logger.warning.assert_called_with("Column table1/missing is not described in data elements")
+        mock_logger.warning.assert_called_with("Column %s/%s is not described in data elements", "table1", "missing")
 
     @patch("nightingale.mapping_template.validator.logger")
     def test_validate_selector_all_columns_mapped(self, mock_logger):
@@ -175,7 +175,7 @@ class TestMappingTemplateValidator(unittest.TestCase):
         self.validator.validate_selector(row)
 
         # Check if a warning was logged for the unmapped column
-        mock_logger.warning.assert_called_with("Column mapped_value is not mapped in mapping template")
+        mock_logger.warning.assert_called_with("Column %s is not mapped in mapping template", "mapped_value")
 
 
 if __name__ == "__main__":

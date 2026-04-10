@@ -27,5 +27,5 @@ class DataLoader:
         conn.row_factory = sqlite3.Row
         # for tests
         self._connection = conn
-        logger.info(f"Connected to {self.config.connection}")
+        logger.info("Connected to %s", self.config.connection)
         return conn

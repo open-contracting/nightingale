@@ -21,7 +21,7 @@ class MappingTemplateValidator:
             columns = [c[1] for c in cursor.execute(f"PRAGMA table_info([{table_name}])").fetchall()[1:]]
             for column in columns:
                 if column not in elements:
-                    logger.warning(f"Column {table_name}/{column} is not described in data elements")
+                    logger.warning("Column %s/%s is not described in data elements", table_name, column)
 
     def validate_selector(self, row) -> None:
         """Check selected columns are used in mapping."""
@@ -31,4 +31,4 @@ class MappingTemplateValidator:
 
         for column in columns:
             if column not in labels_for_mapping:
-                logger.warning(f"Column {column} is not mapped in mapping template")
+                logger.warning("Column %s is not mapped in mapping template", column)
