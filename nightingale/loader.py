@@ -25,7 +25,11 @@ class DataLoader:
             return self._connection
         conn = sqlite3.connect(self.config.connection)
         conn.row_factory = sqlite3.Row
-        # for tests
         self._connection = conn
         logger.info("Connected to %s", self.config.connection)
         return conn
+
+    def close(self):
+        if self._connection:
+            self._connection.close()
+            self._connection = None

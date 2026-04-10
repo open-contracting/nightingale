@@ -30,6 +30,7 @@ class TestDataLoader(unittest.TestCase):
         connection = loader.get_connection()
         assert connection is not None
         assert connection.execute("PRAGMA database_list").fetchall()[0]["file"] == ""
+        loader.close()
 
     def test_load(self):
         data = self.loader.load("SELECT * FROM test_table")
