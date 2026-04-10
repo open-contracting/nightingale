@@ -113,34 +113,34 @@ def run(
         # Apply CLI overrides
         if datasource:
             config_data["datasource"] = {"connection": datasource}
-        selector_content = config_data["mapping"]["selector"]
         if selector:
             try:
                 with open(selector) as f:
-                    selector_content = f.read()
+                    config_data["mapping"]["selector"] = f.read()
             except OSError as e:
                 raise click.ClickException(f"Error reading selector file {selector}: {e}")
-        # TODO: simplify this
-        config_data["mapping"] = {
-            "file": mapping_file or config_data["mapping"]["file"],
-            "codelists": codelists_file or config_data["mapping"].get("codelists"),
-            "ocid_prefix": ocid_prefix or config_data["mapping"]["ocid_prefix"],
-            "selector": selector_content,
-            "force_publish": (
-                force_publish if force_publish is not None else config_data["mapping"].get("force_publish", False)
-            ),
-        }
-        config_data["publishing"] = {
-            "publisher": publisher or config_data["publishing"]["publisher"],
-            "base_uri": base_uri or config_data["publishing"]["base_uri"],
-            "version": version or config_data["publishing"].get("version", ""),
-            "license": version or config_data["publishing"].get("license", ""),
-            "publicationPolicy": version or config_data["publishing"].get("publicationPolicy", ""),
-            "publisher_uid": publisher_uid or config_data["publishing"].get("publisher_uid", ""),
-            "publisher_scheme": publisher_scheme or config_data["publishing"].get("publisher_scheme", ""),
-            "publisher_uri": publisher_uri or config_data["publishing"].get("publisher_uri", ""),
-            "extensions": list(extensions) if extensions else config_data["publishing"].get("extensions", []),
-        }
+        if mapping_file:
+            config_data["mapping"]["file"] = mapping_file
+        if codelists_file:
+            config_data["mapping"]["codelists"] = codelists_file
+        if ocid_prefix:
+            config_data["mapping"]["ocid_prefix"] = ocid_prefix
+        if force_publish:
+            config_data["mapping"]["force_publish"] = force_publish
+        if publisher:
+            config_data["publishing"]["publisher"] = publisher
+        if base_uri:
+            config_data["publishing"]["base_uri"] = base_uri
+        if version:
+            config_data["publishing"]["version"] = version
+        if publisher_uid:
+            config_data["publishing"]["publisher_uid"] = publisher_uid
+        if publisher_scheme:
+            config_data["publishing"]["publisher_scheme"] = publisher_scheme
+        if publisher_uri:
+            config_data["publishing"]["publisher_uri"] = publisher_uri
+        if extensions:
+            config_data["publishing"]["extensions"] = list(extensions)
         if output_directory:
             config_data["output"] = {"directory": output_directory}
 
