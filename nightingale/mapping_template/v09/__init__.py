@@ -27,9 +27,7 @@ class MappingTemplate:
         self.config = config
         self.wb = openpyxl.load_workbook(self.config.file, data_only=True)
         self.data_elements = self.read_data_elements_sheet(self.wb[DATA_SHEET])
-        # self.data_sources = self.read_sheet('1. Data Sources', skiprows=3)
         mappings = self.read_mappings()
-        # mappings = self.normmalize_mapping_column(mappings)
         self.mappings = self.enforce_mapping_structure(mappings)
         self.schema = self.read_schema_sheet()
         self.extensions = self.read_extenions_info()
@@ -184,9 +182,6 @@ class MappingTemplate:
             if mapping["path"] == path:
                 result.append(mapping)
         return result
-
-    # def get_data_sources(self):
-    #     return self.data_sources.asdict()
 
     def get_paths_for_mapping(self, key, force_publish=False):
         result = []

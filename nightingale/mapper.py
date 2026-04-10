@@ -370,11 +370,6 @@ class OCDSDataMapper:
                     array_value = value
                     if path == array_path:
                         if "criteria" in path:
-                            # if child_path == "criteria":
-                            #     set_nested_value(
-                            #       result, keys, value, flattened_schema, add_new=True, append_once=True)
-                            #     continue
-
                             tender = result.get("tender", {})
                             selection = tender.get("selectionCriteria")
                             if selection:

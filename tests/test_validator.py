@@ -24,7 +24,7 @@ class TestMappingTemplateValidator(unittest.TestCase):
             [
                 (0, "id", "INTEGER", 0, None, 0),
                 (1, "name", "TEXT", 0, None, 0),
-                # (2, 'missing', 'TEXT', 0, None, 0)
+                # "missing" column intentionally omitted to test missing column detection
             ],  # Second fetchall call
         ]
 
