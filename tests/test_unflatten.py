@@ -9,7 +9,7 @@ from nightingale.mapper import OCDSDataMapper
 from nightingale.utils import get_longest_array_path
 
 
-class dummy_ocds_mapping_template:
+class DummyOcdsMappingTemplate:
     def __init__(self, mapping_items, schema, array_paths=None):
         self.mappings = mapping_items
         self._schema = schema
@@ -51,7 +51,7 @@ def base_config():
 
 @pytest.fixture
 def dummy_mapping_template_default():
-    return dummy_ocds_mapping_template([], {})
+    return DummyOcdsMappingTemplate([], {})
 
 
 @pytest.fixture(autouse=True)
@@ -346,7 +346,7 @@ def patch_mapping_template(monkeypatch, dummy_mapping_template_default):
     ],
 )
 def test_transform_data_arrays(rows, mapping_items, schema_def, array_paths, expected_output, base_config):
-    dummy_template = dummy_ocds_mapping_template(mapping_items, schema_def, array_paths)
+    dummy_template = DummyOcdsMappingTemplate(mapping_items, schema_def, array_paths)
     with mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_template):
         mapper = OCDSDataMapper(base_config)
     mapper.mapping = dummy_template
@@ -365,13 +365,13 @@ def test_transform_data_arrays(rows, mapping_items, schema_def, array_paths, exp
     ],
     ids=["ID1", "ID2", "ID3"],
 )
-@mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_ocds_mapping_template([], {}))
+@mock.patch("nightingale.mapper.MappingTemplate", return_value=DummyOcdsMappingTemplate([], {}))
 def test_produce_ocid(mock_mapping_template, base_config, input_ocid, expected_ocid):
     mapper = OCDSDataMapper(base_config)
     assert mapper.produce_ocid(input_ocid) == expected_ocid
 
 
-@mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_ocds_mapping_template([], {}))
+@mock.patch("nightingale.mapper.MappingTemplate", return_value=DummyOcdsMappingTemplate([], {}))
 def test_date_release(mock_config, base_config):
     mapper = OCDSDataMapper(base_config)
     curr_row = {}
@@ -379,7 +379,7 @@ def test_date_release(mock_config, base_config):
     assert curr_row.get("date") == "2022-01-01T00:00:00Z"
 
 
-@mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_ocds_mapping_template([], {}))
+@mock.patch("nightingale.mapper.MappingTemplate", return_value=DummyOcdsMappingTemplate([], {}))
 def test_tag_initiation_type(mock_config, base_config):
     mapper = OCDSDataMapper(base_config)
     curr_row = {"tender": {}}
@@ -387,7 +387,7 @@ def test_tag_initiation_type(mock_config, base_config):
     assert curr_row.get("initiationType") == "tender"
 
 
-@mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_ocds_mapping_template([], {}))
+@mock.patch("nightingale.mapper.MappingTemplate", return_value=DummyOcdsMappingTemplate([], {}))
 def test_tag_ocid(mock_config, base_config):
     mapper = OCDSDataMapper(base_config)
     curr_row = {}
@@ -395,7 +395,7 @@ def test_tag_ocid(mock_config, base_config):
     assert curr_row.get("ocid") == "prefix-12345"
 
 
-@mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_ocds_mapping_template([], {}))
+@mock.patch("nightingale.mapper.MappingTemplate", return_value=DummyOcdsMappingTemplate([], {}))
 def test_remove_empty_id_arrays(mock_config, base_config):
     mapper = OCDSDataMapper(base_config)
     input_data = {
@@ -421,7 +421,7 @@ def generate_hash(data):
 
 
 @mock.patch("nightingale.mapper.get_iso_now")
-@mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_ocds_mapping_template([], {}))
+@mock.patch("nightingale.mapper.MappingTemplate", return_value=DummyOcdsMappingTemplate([], {}))
 def test_finish_release(mock_config, mock_get_iso_now, base_config):
     mock_get_iso_now.return_value = "2022-01-01T00:00:00Z"
     mapper = OCDSDataMapper(base_config)
@@ -452,7 +452,7 @@ def test_finish_release(mock_config, mock_get_iso_now, base_config):
 
 
 @mock.patch("nightingale.mapper.get_iso_now")
-@mock.patch("nightingale.mapper.MappingTemplate", return_value=dummy_ocds_mapping_template([], {}))
+@mock.patch("nightingale.mapper.MappingTemplate", return_value=DummyOcdsMappingTemplate([], {}))
 def test_finish_release_with_tags(mock_mapping_template, mock_get_iso_now, base_config):
     mock_get_iso_now.return_value = "2022-01-01T00:00:00Z"
     mapper = OCDSDataMapper(base_config)
