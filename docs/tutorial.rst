@@ -125,7 +125,7 @@ Run the transformation using the CLI:
 
 .. code-block:: sh
 
-    nightingale --config sample_config.toml --package --loglevel DEBUG
+    ocdsnightingale --config sample_config.toml --package --loglevel DEBUG
 
 This will produce an output file in the `output` directory.
 

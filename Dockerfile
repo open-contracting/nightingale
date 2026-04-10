@@ -13,8 +13,8 @@ RUN pip install --upgrade pip
 # Copy the rest of the application code into the container
 COPY . .
 
-# Install the nightigale package
+# Install the ocds-nightingale package
 RUN pip install -e .
 
 # Set the entrypoint command
-ENTRYPOINT ["nightingale"]
+ENTRYPOINT ["ocdsnightingale"]

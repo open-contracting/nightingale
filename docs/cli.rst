@@ -5,7 +5,7 @@ The following options are available for the Nightingale CLI tool:
 
 .. code-block:: sh
 
-    nightingale --help
+    ocdsnightingale --help
 
 Options
 -------

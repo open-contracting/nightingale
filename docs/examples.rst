@@ -66,7 +66,7 @@ Example 1: Basic Transformation
 
    .. code-block:: sh
 
-       nightingale --config sample_config.toml --loglevel INFO
+       ocdsnightingale --config sample_config.toml --loglevel INFO
 
 Example 2: Transformation with Packaging
 ----------------------------------------
@@ -109,7 +109,7 @@ Example 2: Transformation with Packaging
 
    .. code-block:: sh
 
-       nightingale --config sample_config.toml --package --loglevel INFO
+       ocdsnightingale --config sample_config.toml --package --loglevel INFO
 
 This command will not only map the data but also package it into a release package and write it to the `output` directory.
 
@@ -185,7 +185,7 @@ You may need to manipulate data within the SQL query itself before it is fed int
 
    .. code-block:: sh
 
-       nightingale --config sample_config.toml --loglevel INFO
+       ocdsnightingale --config sample_config.toml --loglevel INFO
 
 This command will execute the advanced SQL query, manipulate the data, and then transform it using the specified mapping configuration.
 
@@ -306,6 +306,6 @@ If the required data spans across multiple tables, you can use SQL JOINs to comb
 
    .. code-block:: sh
 
-       nightingale --config sample_config.toml --loglevel INFO
+       ocdsnightingale --config sample_config.toml --loglevel INFO
 
 This command will execute the SQL query joining data from two tables and then transform it using the specified mapping configuration.
