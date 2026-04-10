@@ -64,6 +64,7 @@ API changes
    -  :meth:`nightingale.mapping_template.v09.MappingTemplate.get_paths_for_mapping`
 
 -  Rename package and command to ``ocdsnightingale``.
+-  Unpin dependencies.
 
 0.0.1 (2026-10-04)
 ------------------
