@@ -11,6 +11,16 @@ Fixed
 -  The ``--version`` option no longer controls ``license`` and ``publicationPolicy``. :commit:`c6953ae`
 -  The ``force_publish`` configuration is no longer ignored. :commit:`c6953ae`
 -  Remove hardcoding of OCID prefix in logger messages.
+-  Make configurable the field paths that pass-through unmapped codelist values, instead of discarding them.
+
+   .. admonition:: Migration
+
+      Add to the ``--config`` file:
+
+      .. code-block:: toml
+
+         [mapping]
+         codelist_passthrough_paths = ["/tender/status", "/tender/procurementMethod"]
 
 Changed
 ~~~~~~~

@@ -34,6 +34,9 @@ class Mapping:
     selector: str
     force_publish: bool | None = False
     codelists: Path | None = None
+    #: OCDS paths at which to keep source values that aren't in the codelist, instead of discarding them.
+    #: Useful when values are derived via SQL logic (e.g. CASE expressions) and are absent from the codelist file.
+    codelist_passthrough_paths: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

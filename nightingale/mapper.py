@@ -533,9 +533,8 @@ class OCDSDataMapper:
             if codelist:
                 if new_value := codelist.get(value):
                     return new_value
-                if path not in {"/tender/status", "/tender/procurementMethod"}:
-                    # Discard values not in the codelist, except the above paths.
-                    return ""
+                if path not in self.config.mapping.codelist_passthrough_paths:
+                    return ""  # discard
         return value
 
 
