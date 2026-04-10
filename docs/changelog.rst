@@ -21,6 +21,9 @@ Changed
    - the package's ``uri``
    - the package's filename
 
+-  If ``--no-stream`` is set and ``--package`` isn't set, then the package's filename defaults to e.g. ``2026-04-10T21:30:00Z`` (``Z`` suffix and no microseconds), instead of e.g. ``2026-04-10T14:30:00.123456`` (microseconds and no ``Z`` suffix).
+-  :meth:`nightingale.writer.DataWriter.write` and :func:`nightingale.writer.new_name` require the ``package`` argument to set ``"publishedDate"``, when the package is a ``dict``.
+-  :meth:`nightingale.writer.DataWriter.start_package_stream` requires the ``package_metadata`` argument to set ``"publishedDate"``.
 -  Keyword arguments are required for boolean arguments: :commit:`4268fcc`
 
    -  :meth:`nightingale.mapper.OCDSDataMapper.map`

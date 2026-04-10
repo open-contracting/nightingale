@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -7,7 +6,7 @@ import simplejson as json
 
 from nightingale.config import Output
 from nightingale.exceptions import StreamNotStartedError
-from nightingale.utils import produce_package_name
+from nightingale.utils import get_iso_now, produce_package_name
 
 if TYPE_CHECKING:
     import io
@@ -20,11 +19,7 @@ def new_name(package: dict | list) -> str:
     :param package: The release package dictionary.
     :return: The generated package name.
     """
-    if isinstance(package, list):
-        date = datetime.now().isoformat()  # noqa: DTZ005
-    else:
-        date = package.get("publishedDate", datetime.now().isoformat())  # noqa: DTZ005
-    return produce_package_name(date)
+    return produce_package_name(get_iso_now() if isinstance(package, list) else package["publishedDate"])
 
 
 class DataWriter:
