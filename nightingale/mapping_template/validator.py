@@ -13,8 +13,7 @@ class MappingTemplateValidator:
     def validate_data_elements(self) -> None:
         """Match columns in the database and in data elements from mapping template."""
         cursor = self.loader.get_cursor()
-        # XXX: postgersql support?
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")  # SQLite-specific
         tables = cursor.fetchall()
         for table in tables:
             table_name = table[0]

@@ -12,8 +12,6 @@ class Output:
 
 @dataclass(frozen=True)
 class Datasource:
-    # TODO: postgresql support?
-    # XXX: maybe this should be an uri?
     connection: str
 
 

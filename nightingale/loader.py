@@ -3,8 +3,6 @@ import sqlite3
 
 logger = logging.getLogger(__name__)
 
-# TODO: postgresql support
-
 
 class DataLoader:
     """Load data from a database using a SQL query."""
@@ -16,14 +14,13 @@ class DataLoader:
     def load(self, selector):
         cursor = self.get_cursor()
         cursor.execute(selector)
-        # logger.info(f"Loaded data from {self.config.connection}")
         return (dict(row) for row in cursor)
 
     def get_cursor(self):
         conn = self.get_connection()
         return conn.cursor()
 
-    def get_connection(self):
+    def get_connection(self):  # SQLite-specific
         if self._connection:
             return self._connection
         conn = sqlite3.connect(self.config.connection)
