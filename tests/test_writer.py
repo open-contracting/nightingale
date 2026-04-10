@@ -27,7 +27,7 @@ class TestDataWriter(unittest.TestCase):
 
     def test_get_output_path(self):
         output_path = self.writer.get_output_path(self.package)
-        expected_path = Path(self.config.directory) / f'release-package-{self.package["publishedDate"]}.json'
+        expected_path = Path(self.config.directory) / f"release-package-{self.package['publishedDate']}.json"
         self.assertEqual(output_path, expected_path)
 
     def test_write(self):
