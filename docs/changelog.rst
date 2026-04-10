@@ -10,6 +10,7 @@ Fixed
 -  Restore release date assignment. :commit:`c1d585f`
 -  The ``--version`` option no longer controls ``license`` and ``publicationPolicy``. :commit:`c6953ae`
 -  The ``force_publish`` configuration is no longer ignored. :commit:`c6953ae`
+-  Remove hardcoding of OCID prefix in logger messages.
 
 Changed
 ~~~~~~~

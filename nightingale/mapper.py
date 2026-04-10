@@ -129,7 +129,7 @@ class OCDSDataMapper:
                 self.finish_release(curr_ocid, curr_release, mapped, max_date)
                 duration = time.time() - start_time_ocid
                 minutes, seconds = divmod(int(duration), 60)
-                logger.info("Release mapped: ocds-ptecst-%s in %dm %ds", curr_ocid, minutes, seconds)
+                logger.info("Release mapped: %s in %dm %ds", self.produce_ocid(curr_ocid), minutes, seconds)
                 if count >= LARGE_RELEASE_ROW_THRESHOLD:
                     large_ocids[curr_ocid] = count
                 if duration > SLOW_RELEASE_SECONDS:
@@ -163,7 +163,7 @@ class OCDSDataMapper:
             self.finish_release(curr_ocid, curr_release, mapped, max_date)
             duration = time.time() - start_time_ocid
             minutes, seconds = divmod(int(duration), 60)
-            logger.info("Release mapped: ocds-ptecst-%s in %dm %ds", curr_ocid, minutes, seconds)
+            logger.info("Release mapped: %s in %dm %ds", self.produce_ocid(curr_ocid), minutes, seconds)
             if count >= LARGE_RELEASE_ROW_THRESHOLD:
                 large_ocids[curr_ocid] = count
             if duration > SLOW_RELEASE_SECONDS:
