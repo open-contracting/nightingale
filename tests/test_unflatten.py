@@ -30,6 +30,15 @@ class dummy_ocds_mapping_template:
     def get_datetime_fields(self):
         return set()
 
+    def get_mapping_for(self, path):
+        result = []
+        if not path.startswith("/"):
+            path = "/" + path
+        for mapping in self.get_mappings():
+            if mapping["path"] == path:
+                result.append(mapping)
+        return result
+
 
 @pytest.fixture
 def base_config():
