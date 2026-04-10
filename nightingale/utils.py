@@ -15,11 +15,12 @@ def remove_dicts_without_id(data):
                 result[k] = cleaned_v
         return result
     if isinstance(data, list):
-        all_items = []
-        for item in data:
-            if not (isinstance(item, dict) and "id" not in item) or (isinstance(item, dict) and item.get("verificationMethod")):
-                all_items.append(remove_dicts_without_id(item))
-        return all_items
+        return [
+            remove_dicts_without_id(item)
+            for item in data
+            if not (isinstance(item, dict) and "id" not in item)
+            or (isinstance(item, dict) and item.get("verificationMethod"))
+        ]
     return data
 
 

@@ -176,13 +176,9 @@ class MappingTemplate:
         return self.mappings
 
     def get_mapping_for(self, path):
-        result = []
         if not path.startswith("/"):
             path = "/" + path
-        for mapping in self.get_mappings():
-            if mapping["path"] == path:
-                result.append(mapping)
-        return result
+        return [mapping for mapping in self.get_mappings() if mapping["path"] == path]
 
     def get_paths_for_mapping(self, key, force_publish=False):
         result = []
