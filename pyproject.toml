@@ -3,7 +3,7 @@ requires = ["setuptools>=61.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ocds-nightingale"
+name = "ocdsnightingale"
 version = "0.0.1"
 authors = [{name = "Open Contracting Partnership", email = "data@open-contracting.org"}]
 description = "An ETL to transform US cities procurement data into OCDS format."

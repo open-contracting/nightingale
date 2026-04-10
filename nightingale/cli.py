@@ -180,7 +180,7 @@ def run(
 
         logger.info("Data transformation completed successfully")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         click.echo(traceback.format_exc())
         raise click.ClickException(f"Error during transformation: {e}") from None
     finally:
