@@ -210,7 +210,7 @@ class MappingTemplate:
         return get_longest_array_path(self.get_arrays(), path)
 
     def get_datetime_fields(self):
-        """Returns a list of paths that are marked as 'date-time' in the 'values' column in the schema."""
+        """Return a list of paths that are marked as 'date-time' in the 'values' column in the schema."""
         datetime_fields = []
         for path, field_info in self.schema.items():
             if field_info.get("values") == "date-time":

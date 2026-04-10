@@ -73,7 +73,7 @@ class DataWriter:
             json.dump(package, f, indent=2, ensure_ascii=False)
 
     def start_package_stream(self, package_metadata: dict) -> None:
-        """Starts a streaming write session. Writes package metadata and prepares for releases."""
+        """Start a streaming write session, write package metadata and prepare for releases."""
         buffer_size_str = os.getenv("APP_WRITE_BUFFER_SIZE", "8388608")
         buffer_size = int(buffer_size_str)
         path = self.get_output_path(package_metadata)
@@ -89,7 +89,7 @@ class DataWriter:
         self._is_first_release = True
 
     def stream_release(self, release: dict) -> None:
-        """Writes a single release to the open package file stream."""
+        """Write a single release to the open package file stream."""
         if not self._file_handler:
             raise OSError("Stream writing has not been started. Call start_package_stream() first.")
 
@@ -103,7 +103,8 @@ class DataWriter:
 
     def end_package_stream(self) -> None:
         """
-        Finalizes the streaming write session by closing the JSON array and file.
+        Finalize the streaming write session by closing the JSON array and file.
+
         This method is safe to call even if the stream was not started or already closed.
         """
         if self._file_handler:
@@ -112,5 +113,5 @@ class DataWriter:
             self._file_handler = None
 
     def is_streaming(self) -> bool:
-        """Checks if the writer is currently in a streaming session."""
+        """Check if the writer is currently in a streaming session."""
         return self._file_handler is not None and not self._file_handler.closed
