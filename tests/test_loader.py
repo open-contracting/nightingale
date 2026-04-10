@@ -28,12 +28,12 @@ class TestDataLoader(unittest.TestCase):
     def test_get_connection(self):
         loader = DataLoader(self.config)
         connection = loader.get_connection()
-        self.assertIsNotNone(connection)
-        self.assertEqual(connection.execute("PRAGMA database_list").fetchall()[0]["file"], "")
+        assert connection is not None
+        assert connection.execute("PRAGMA database_list").fetchall()[0]["file"] == ""
 
     def test_load(self):
         data = self.loader.load("SELECT * FROM test_table")
-        self.assertEqual(list(data), [{"column1": "value1"}])
+        assert list(data) == [{"column1": "value1"}]
 
 
 if __name__ == "__main__":

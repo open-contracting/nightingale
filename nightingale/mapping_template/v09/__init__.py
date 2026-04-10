@@ -38,7 +38,7 @@ class MappingTemplate:
         return [self.wb[sheet] for sheet in self.wb.sheetnames if "OCDS" in sheet and SCHEMA_SHEET in sheet]
 
     def normmalize_mapping_column(self, mappings):
-        """Normalize the mapping column by setting all space separators to one space"""
+        """Normalize the mapping column by setting all space separators to one space."""
         for mapping in mappings:
             if "  " in mapping["mapping"]:
                 mapping["mapping"] = " ".join(p.strip() for p in mapping["mapping"].split("  "))
@@ -218,9 +218,7 @@ class MappingTemplate:
         return get_longest_array_path(self.get_arrays(), path)
 
     def get_datetime_fields(self):
-        """
-        Returns a list of paths that are marked as 'date-time' in the 'values' column in the schema.
-        """
+        """Returns a list of paths that are marked as 'date-time' in the 'values' column in the schema."""
         datetime_fields = []
         for path, field_info in self.schema.items():
             if field_info.get("values") == "date-time":

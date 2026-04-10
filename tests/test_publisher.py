@@ -17,19 +17,11 @@ class TestDataPublisher(unittest.TestCase):
 
     def test_publish(self):
         package = self.publisher.package(self.data)
-        self.assertEqual(package["version"], self.config.version)
-        self.assertEqual(package["license"], self.config.license)
-        self.assertEqual(package["publicationPolicy"], self.config.publicationPolicy)
-        self.assertEqual(
-            package["publisher"],
-            {
-                "name": self.config.publisher,
-                "scheme": self.config.publisher_scheme,
-                "uid": self.config.publisher_uid,
-                "uri": self.config.publisher_uri,
-            },
-        )
-        self.assertEqual(package["releases"][0]["ocid"], "ocid_prefix-1234")
+        assert package["version"] == self.config.version
+        assert package["license"] == self.config.license
+        assert package["publicationPolicy"] == self.config.publicationPolicy
+        assert package["publisher"] == {"name": self.config.publisher, "scheme": self.config.publisher_scheme, "uid": self.config.publisher_uid, "uri": self.config.publisher_uri}
+        assert package["releases"][0]["ocid"] == "ocid_prefix-1234"
 
 
 if __name__ == "__main__":

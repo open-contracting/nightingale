@@ -64,21 +64,18 @@ def is_new_array(array_counters: dict, child_path: str, array_key: str, array_va
     >>> is_new_array(array_counters, child_path, array_key, array_value, array_path)
     False
     """
-    if array_key == "id" and "/" + array_key == child_path and array_counters[array_path] != array_value:
-        return True
-    return False
+    return bool(array_key == "id" and "/" + array_key == child_path and array_counters[array_path] != array_value)
 
 
 def get_longest_array_path(arrays, path):  # extract for testing
-    for array in reversed(sorted(arrays, key=len)):
+    for array in sorted(arrays, key=len, reverse=True):
         if path.startswith(array):
             return array
+    return None
 
 
 def group_contiguous_mappings(mapping_list: list[dict]) -> list[tuple[str, list[dict]]]:
-    """
-    Group mapping items by contiguous blocks: group consecutive items that share the same block.
-    """
+    """Group mapping items by contiguous blocks: group consecutive items that share the same block."""
     groups = []
     if not mapping_list:
         return groups

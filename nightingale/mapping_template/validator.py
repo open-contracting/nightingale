@@ -4,14 +4,14 @@ logger = logging.getLogger(__name__)
 
 
 class MappingTemplateValidator:
-    """Class to validate loaded mapping against providded data"""
+    """Class to validate loaded mapping against providded data."""
 
     def __init__(self, loader, mapping_template):
         self.loader = loader
         self.mapping_template = mapping_template
 
     def validate_data_elements(self) -> None:
-        """Match columns in the database and in data elements from mapping template"""
+        """Match columns in the database and in data elements from mapping template."""
         cursor = self.loader.get_cursor()
         # XXX: postgersql support?
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -25,10 +25,10 @@ class MappingTemplateValidator:
                     logger.warning(f"Column {table_name}/{column} is not described in data elements")
 
     def validate_selector(self, row) -> None:
-        """Check selected columns are used in mapping"""
+        """Check selected columns are used in mapping."""
         elements = self.mapping_template.get_data_elements()
         labels_for_mapping = [e["for_mapping"] for e in elements.values()]
-        columns = [k for k in row]
+        columns = list(row)
 
         for column in columns:
             if column not in labels_for_mapping:

@@ -457,7 +457,7 @@ def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
         },
     ]
     mapping.get_mappings()
-    for mapp, expected in zip(mapping.mappings, expected_mappings):
+    for mapp, expected in zip(mapping.mappings, expected_mappings, strict=False):
         assert mapp == expected
     assert mapping.get_mapping_for("path2") == [
         {

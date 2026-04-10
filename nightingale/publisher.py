@@ -8,9 +8,7 @@ from nightingale.utils import get_iso_now, produce_package_name
 
 
 class DataPublisher:
-    """
-    Packs array of releases into a release package.
-    """
+    """Packs array of releases into a release package."""
 
     def __init__(self, config: Publishing, mapping):
         """

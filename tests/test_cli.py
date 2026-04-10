@@ -71,7 +71,7 @@ class TestCli(unittest.TestCase):
 
         result = self.runner.invoke(run, ["--config", str(self.config_path), "--no-stream", "--loglevel", "INFO"])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         mock_mapper.assert_called_once()
         mock_loader.assert_called_once()
         mock_writer.assert_called_once()
@@ -105,7 +105,7 @@ class TestCli(unittest.TestCase):
             run, ["--config", str(self.config_path), "--package", "--no-stream", "--loglevel", "INFO"]
         )
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         mock_mapper.assert_called_once()
         mock_loader.assert_called_once()
         mock_writer.assert_called_once()
@@ -136,7 +136,7 @@ class TestCli(unittest.TestCase):
 
         result = self.runner.invoke(run, ["--config", str(self.config_path), "--loglevel", "INFO"])
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         mock_mapper.assert_called_once()
         mock_loader.assert_called_once()
         mock_writer.assert_called_once()
@@ -151,7 +151,7 @@ class TestCli(unittest.TestCase):
             setup_logging("DEBUG")
             logging.getLogger().debug("This is a debug message")
 
-        self.assertIn("This is a debug message", log.output[0])
+        assert "This is a debug message" in log.output[0]
 
     @patch("nightingale.cli.Config.from_file")
     @patch("nightingale.cli.OCDSDataMapper")
@@ -173,15 +173,15 @@ class TestCli(unittest.TestCase):
 
         result = self.runner.invoke(run, ["--config", str(self.config_path), "--loglevel", "INFO"])
 
-        self.assertNotEqual(result.exit_code, 0)
-        self.assertIn("Error during transformation: Simulated mapping crash", result.output)
+        assert result.exit_code != 0
+        assert "Error during transformation: Simulated mapping crash" in result.output
         mock_mapper.assert_called_once()
         mock_loader.assert_called_once()
 
     def test_invalid_toml_file(self):
         result = self.runner.invoke(run, ["--config", str(self.invalid_config_path), "--loglevel", "INFO"])
-        self.assertNotEqual(result.exit_code, 0)
-        self.assertIn("Error decoding TOML", result.output)
+        assert result.exit_code != 0
+        assert "Error decoding TOML" in result.output
 
     @patch("nightingale.cli.Config.from_file")
     @patch("nightingale.cli.OCDSDataMapper")
@@ -214,7 +214,7 @@ class TestCli(unittest.TestCase):
             ],
         )
 
-        self.assertEqual(result.exit_code, 0)
+        assert result.exit_code == 0
         mock_mapper.assert_called_once()
         mock_loader.assert_called_once()
         mock_writer.assert_called_once()

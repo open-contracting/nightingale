@@ -60,7 +60,7 @@ def patch_mapping_template(monkeypatch, dummy_mapping_template_default):
 
 
 @pytest.mark.parametrize(
-    "rows, mapping_items, schema_def, array_paths, expected_output",
+    ("rows", "mapping_items", "schema_def", "array_paths", "expected_output"),
     [
         (
             [
@@ -357,7 +357,7 @@ def test_transform_data_arrays(rows, mapping_items, schema_def, array_paths, exp
 
 
 @pytest.mark.parametrize(
-    "input_ocid, expected_ocid",
+    ("input_ocid", "expected_ocid"),
     [
         ("12345", "prefix-12345"),
         ("abcde", "prefix-abcde"),

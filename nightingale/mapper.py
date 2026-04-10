@@ -277,11 +277,10 @@ class OCDSDataMapper:
 
         skip_criteria_processing = False
 
-        if result:
-            if result.get("tender", {}).get("selectionCriteria", {}).get("criteria", None):
-                skip_criteria_processing = True
+        if result and result.get("tender", {}).get("selectionCriteria", {}).get("criteria", None):
+            skip_criteria_processing = True
         contiguous_groups = group_contiguous_mappings(self.mapping.get_mappings())
-        for block, group in contiguous_groups:
+        for _block, group in contiguous_groups:
             sorted_group = sort_group_by_parent_and_id(group)
             for mapping in sorted_group:
                 flat_col = mapping["mapping"]
@@ -317,12 +316,11 @@ class OCDSDataMapper:
                                 found_contract = contract
                                 break
 
-                        if found_contract and found_contract.get("milestones"):
-                            if any(
-                                m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]
-                            ):
-                                contract_milestones_processed_for_this_row = True
-                                continue
+                        if found_contract and found_contract.get("milestones") and any(
+                            m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]
+                        ):
+                            contract_milestones_processed_for_this_row = True
+                            continue
                     codes = value.split()
                     if not codes:
                         continue
@@ -399,7 +397,7 @@ class OCDSDataMapper:
                     if "criteria" in path:
                         if child_path != "criteria":
                             if result.get("tender") and result["tender"].get("selectionCriteria", None):
-                                if len(result["tender"]["selectionCriteria"]["criteria"]) == 0 or last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1].keys():
+                                if len(result["tender"]["selectionCriteria"]["criteria"]) == 0 or last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1]:
                                     result["tender"]["selectionCriteria"]["criteria"].append({})
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
@@ -423,12 +421,12 @@ class OCDSDataMapper:
                                         for index, criterion in enumerate(
                                             result["tender"]["selectionCriteria"]["criteria"]
                                         ):
-                                            if last_key_name not in criterion.keys() or len(criterion.keys()) == 0:
+                                            if last_key_name not in criterion or len(criterion) == 0:
                                                 if last_key_name != "minimum":
                                                     current = result["tender"]["selectionCriteria"]["criteria"][index]
                                                     break
                                                 if (
-                                                    len(criterion.keys()) == 0
+                                                    len(criterion) == 0
                                                     or criterion.get("type", "") == "economic"
                                                 ):
                                                     current = result["tender"]["selectionCriteria"]["criteria"][

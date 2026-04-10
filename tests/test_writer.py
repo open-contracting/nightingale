@@ -23,20 +23,20 @@ class TestDataWriter(unittest.TestCase):
 
     def test_make_dirs(self):
         self.writer.make_dirs()
-        self.assertTrue(Path(self.config.directory).exists())
+        assert Path(self.config.directory).exists()
 
     def test_get_output_path(self):
         output_path = self.writer.get_output_path(self.package)
         expected_path = Path(self.config.directory) / f"release-package-{self.package['publishedDate']}.json"
-        self.assertEqual(output_path, expected_path)
+        assert output_path == expected_path
 
     def test_write(self):
         self.writer.write(self.package)
         output_path = self.writer.get_output_path(self.package)
-        self.assertTrue(output_path.exists())
+        assert output_path.exists()
         with open(output_path) as f:
             data = json.load(f)
-        self.assertEqual(data, self.package)
+        assert data == self.package
 
 
 if __name__ == "__main__":

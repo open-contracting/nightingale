@@ -1,12 +1,15 @@
-import io
 import os
 from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import simplejson as json
 
 from nightingale.config import Output
 from nightingale.utils import produce_package_name
+
+if TYPE_CHECKING:
+    import io
 
 
 def new_name(package: dict | list) -> str:
@@ -24,9 +27,7 @@ def new_name(package: dict | list) -> str:
 
 
 class DataWriter:
-    """
-    Writes release package to disk.
-    """
+    """Writes release package to disk."""
 
     def __init__(self, config: Output):
         """
@@ -72,9 +73,7 @@ class DataWriter:
             json.dump(package, f, indent=2, ensure_ascii=False)
 
     def start_package_stream(self, package_metadata: dict) -> None:
-        """
-        Starts a streaming write session. Writes package metadata and prepares for releases.
-        """
+        """Starts a streaming write session. Writes package metadata and prepares for releases."""
         buffer_size_str = os.getenv("APP_WRITE_BUFFER_SIZE", "8388608")
         buffer_size = int(buffer_size_str)
         path = self.get_output_path(package_metadata)
@@ -90,9 +89,7 @@ class DataWriter:
         self._is_first_release = True
 
     def stream_release(self, release: dict) -> None:
-        """
-        Writes a single release to the open package file stream.
-        """
+        """Writes a single release to the open package file stream."""
         if not self._file_handler:
             raise OSError("Stream writing has not been started. Call start_package_stream() first.")
 
@@ -115,7 +112,5 @@ class DataWriter:
             self._file_handler = None
 
     def is_streaming(self) -> bool:
-        """
-        Checks if the writer is currently in a streaming session.
-        """
+        """Checks if the writer is currently in a streaming session."""
         return self._file_handler is not None and not self._file_handler.closed

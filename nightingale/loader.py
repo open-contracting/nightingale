@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataLoader:
-    """Load data from a database using a SQL query"""
+    """Load data from a database using a SQL query."""
 
     def __init__(self, config, connection=None):
         self.config = config
@@ -21,8 +21,7 @@ class DataLoader:
 
     def get_cursor(self):
         conn = self.get_connection()
-        cursor = conn.cursor()
-        return cursor
+        return conn.cursor()
 
     def get_connection(self):
         if self._connection:
