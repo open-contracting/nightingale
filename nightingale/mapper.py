@@ -209,7 +209,6 @@ class OCDSDataMapper:
         :rtype: dict
         """
 
-        # XXX: some duplication in code present maybe refactoring needed
         def set_nested_value(nested_dict, keys, value, schema, add_new=False, append_once=False):
             value = self.map_codelist_value(keys, schema, codelists, value)
             last_key = keys[-1]
@@ -239,16 +238,11 @@ class OCDSDataMapper:
                     nested_dict = self.shift_current_array(nested_dict, keys_path, array_counters)
 
                 if add_new:
-                    if isinstance(value, dict):
-                        if last_key not in nested_dict:
-                            nested_dict[last_key] = []
-                        nested_dict[last_key].append(value)
-                    else:
-                        if last_key not in nested_dict:
-                            nested_dict[last_key] = []
-                        if value in nested_dict[last_key] and append_once:
-                            return
-                        nested_dict[last_key].append(value)
+                    if last_key not in nested_dict:
+                        nested_dict[last_key] = []
+                    if not isinstance(value, dict) and append_once and value in nested_dict[last_key]:
+                        return
+                    nested_dict[last_key].append(value)
                 else:
                     nested_dict[last_key] = value
             elif last_key in nested_dict:
@@ -263,10 +257,7 @@ class OCDSDataMapper:
             else:
                 subpath = "/" + "/".join(keys)
                 if schema.get(subpath, {}).get("type") == "array" and not isinstance(value, list):
-                    if add_new and isinstance(value, dict):  # Milestone logic
-                        value = [value]
-                    else:
-                        value = [value]
+                    value = [value]
                 nested_dict[last_key] = value
 
         if not result:
@@ -316,8 +307,12 @@ class OCDSDataMapper:
                                 found_contract = contract
                                 break
 
-                        if found_contract and found_contract.get("milestones") and any(
-                            m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]
+                        if (
+                            found_contract
+                            and found_contract.get("milestones")
+                            and any(
+                                m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]
+                            )
                         ):
                             contract_milestones_processed_for_this_row = True
                             continue
@@ -397,7 +392,10 @@ class OCDSDataMapper:
                     if "criteria" in path:
                         if child_path != "criteria":
                             if result.get("tender") and result["tender"].get("selectionCriteria", None):
-                                if len(result["tender"]["selectionCriteria"]["criteria"]) == 0 or last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1]:
+                                if (
+                                    len(result["tender"]["selectionCriteria"]["criteria"]) == 0
+                                    or last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1]
+                                ):
                                     result["tender"]["selectionCriteria"]["criteria"].append({})
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
@@ -425,13 +423,8 @@ class OCDSDataMapper:
                                                 if last_key_name != "minimum":
                                                     current = result["tender"]["selectionCriteria"]["criteria"][index]
                                                     break
-                                                if (
-                                                    len(criterion) == 0
-                                                    or criterion.get("type", "") == "economic"
-                                                ):
-                                                    current = result["tender"]["selectionCriteria"]["criteria"][
-                                                        index
-                                                    ]
+                                                if len(criterion) == 0 or criterion.get("type", "") == "economic":
+                                                    current = result["tender"]["selectionCriteria"]["criteria"][index]
                                                     break
 
                             else:
