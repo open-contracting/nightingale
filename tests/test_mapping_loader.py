@@ -102,7 +102,7 @@ def getter(key):
         data = sheets["2. Data Elements"]
     elif "ocds" in key.lower():
         data = sheets["ocds"]
-        mock_sheet.__getitem__.side_effect = lambda name: [MagicMock() for _ in range(10)]
+        mock_sheet.__getitem__.side_effect = lambda _: [MagicMock() for __ in range(10)]
     mock_sheet.iter_rows.return_value = data
     return mock_sheet
 
@@ -121,7 +121,7 @@ def mock_workbook():
         "OCDS Schema 1.1.5",
     ]
     # Mocking the sheets in the workbook to be accessed via subscript notation
-    workbook.__getitem__.side_effect = lambda name: MagicMock()
+    workbook.__getitem__.side_effect = lambda _: MagicMock()
     return workbook
 
 
@@ -157,7 +157,7 @@ def test_normmalize_mapping_column(mock_config):
 
 @patch("openpyxl.load_workbook")
 def test_read_data_elements_sheet(mock_load_workbook, mock_workbook, mock_config):
-    mock_workbook.__getitem__ = lambda self, x: getter(x)
+    mock_workbook.__getitem__ = lambda _, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
     mapping = MappingTemplate(mock_config)
@@ -190,7 +190,7 @@ def test_read_data_elements_sheet(mock_load_workbook, mock_workbook, mock_config
 
 @patch("openpyxl.load_workbook")
 def test_read_schema_sheet(mock_load_workbook, mock_workbook, mock_config):
-    mock_workbook.__getitem__ = lambda self, x: getter(x)
+    mock_workbook.__getitem__ = lambda _, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
     mapping = MappingTemplate(mock_config)
@@ -251,7 +251,7 @@ def test_enforce_mapping_structure(mock_load_workbook, mock_workbook, mock_confi
 
 @patch("openpyxl.load_workbook")
 def test_read_mappings(mock_load_workbook, mock_workbook, mock_config):
-    mock_workbook.__getitem__ = lambda self, x: getter(x)
+    mock_workbook.__getitem__ = lambda _, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
     mapping = MappingTemplate(mock_config)
@@ -510,7 +510,7 @@ def test_get_element_by_mapping(mock_load_workbook, mock_workbook, mock_config):
             ),
         ]
     )
-    mock_workbook.__getitem__.side_effect = lambda name: mock_sheet
+    mock_workbook.__getitem__.side_effect = lambda _: mock_sheet
     mock_load_workbook.return_value = mock_workbook
 
     mapping = MappingTemplate(mock_config)
@@ -565,7 +565,7 @@ def test_get_paths_for_mapping(mock_load_workbook, mock_workbook, mock_config):
             ),
         ]
     )
-    mock_workbook.__getitem__.side_effect = lambda name: mock_sheet
+    mock_workbook.__getitem__.side_effect = lambda _: mock_sheet
     mock_load_workbook.return_value = mock_workbook
 
     mock_mappings = [
@@ -599,7 +599,7 @@ def test_get_paths_for_mapping(mock_load_workbook, mock_workbook, mock_config):
 
 @patch("openpyxl.load_workbook")
 def test_is_array_path(mock_load_workbook, mock_workbook, mock_config):
-    mock_workbook.__getitem__ = lambda self, x: getter(x)
+    mock_workbook.__getitem__ = lambda _, x: getter(x)
     mock_load_workbook.return_value = mock_workbook
 
     mapping = MappingTemplate(mock_config)

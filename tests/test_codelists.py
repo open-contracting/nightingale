@@ -10,7 +10,7 @@ class DummySheet:
         self.title = title
         self._rows = rows
 
-    def iter_rows(self, values_only=True):
+    def iter_rows(self, **_):
         return iter(self._rows)
 
 
@@ -29,7 +29,7 @@ def dummy_config(monkeypatch):
     cfg = DummyConfig()
     cfg.codelists = "dummy.xlsx"
     # Return an empty workbook to avoid actual file I/O
-    monkeypatch.setattr(openpyxl, "load_workbook", lambda filename, data_only: DummyWorkbook([]))
+    monkeypatch.setattr(openpyxl, "load_workbook", lambda *_, **__: DummyWorkbook([]))
     return cfg
 
 
@@ -80,7 +80,7 @@ def test_load_codelists_mapping(dummy_config, monkeypatch):
     sheet1 = DummySheet("(OCDS) Sheet1", rows_sheet1)
     sheet2 = DummySheet("Other Sheet", rows_sheet2)
     dummy_wb = DummyWorkbook([sheet1, sheet2])
-    monkeypatch.setattr(openpyxl, "load_workbook", lambda filename, data_only: dummy_wb)
+    monkeypatch.setattr(openpyxl, "load_workbook", lambda *_, **__: dummy_wb)
     cm = CodelistsMapping(dummy_config)
     # Only sheet1 is processed, so we expect mapping from List1 only.
     expected = {"List1": {"val1": "10"}}
@@ -97,7 +97,7 @@ def test_get_mapping_for_codelist(dummy_config, monkeypatch):
     ]
     dummy_sheet = DummySheet("(OCDS) Test", rows)
     dummy_wb = DummyWorkbook([dummy_sheet])
-    monkeypatch.setattr(openpyxl, "load_workbook", lambda filename, data_only: dummy_wb)
+    monkeypatch.setattr(openpyxl, "load_workbook", lambda *_, **__: dummy_wb)
     cm = CodelistsMapping(dummy_config)
     mapping = cm.get_mapping_for_codelist("TestCodelist")
     assert mapping == {"ABC": "1"}
