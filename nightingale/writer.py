@@ -20,9 +20,9 @@ def new_name(package: dict | list) -> str:
     :return: The generated package name.
     """
     if isinstance(package, list):
-        date = datetime.now().isoformat()
+        date = datetime.now().isoformat()  # noqa: DTZ005
     else:
-        date = package.get("publishedDate", datetime.now().isoformat())
+        date = package.get("publishedDate", datetime.now().isoformat())  # noqa: DTZ005
     return produce_package_name(date)
 
 
