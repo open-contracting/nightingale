@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 import simplejson as json
 
 from nightingale.config import Output
+from nightingale.exceptions import StreamNotStartedError
 from nightingale.utils import produce_package_name
 
 if TYPE_CHECKING:
@@ -91,7 +92,7 @@ class DataWriter:
     def stream_release(self, release: dict) -> None:
         """Write a single release to the open package file stream."""
         if not self._file_handler:
-            raise OSError("Stream writing has not been started. Call start_package_stream() first.")
+            raise StreamNotStartedError
 
         if not self._is_first_release:
             self._file_handler.write(",\n")

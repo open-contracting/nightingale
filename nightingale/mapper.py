@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 import time
 from typing import Any
 
@@ -76,7 +77,7 @@ class OCDSDataMapper:
                 row["code"]: row for row in loader.load("SELECT code, title, description FROM [releases to Dte]")
             }
             logger.info("Loaded %d entries from [releases to Dte] lookup.", len(self.release_lookup))
-        except Exception as e:
+        except sqlite3.OperationalError as e:
             logger.warning(
                 "Could not load [releases to Dte] lookup table: %s. Milestone titles/descriptions may be missing.", e
             )

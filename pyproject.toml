@@ -95,6 +95,7 @@ ignore-variadic-names = true
 "tests/*" = [
     "ARG001", "D", "FBT003", "INP001", "PLR2004", "S", "TRY003",
 ]
+"nightingale/cli.py" = ["BLE001", "TRY003"]  # click
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
