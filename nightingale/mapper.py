@@ -47,7 +47,7 @@ class OCDSDataMapper:
         if self.config.mapping.codelists:
             self.codelists = CodelistsMapping(self.config.mapping)
 
-        self.release_lookup = {}
+        self.milestone_lookup = {}
 
     def produce_ocid(self, value: str) -> str:
         """
@@ -71,15 +71,15 @@ class OCDSDataMapper:
         """
         config = self.config.mapping
 
-        try:
-            self.release_lookup = {
-                row["code"]: row for row in loader.load("SELECT code, title, description FROM [releases to Dte]")
-            }
-            logger.info("Loaded %d entries from [releases to Dte] lookup.", len(self.release_lookup))
-        except sqlite3.OperationalError as e:
-            logger.warning(
-                "Could not load [releases to Dte] lookup table: %s. Milestone titles/descriptions may be missing.", e
-            )
+        if config.milestone_lookup_sql:
+            try:
+                self.milestone_lookup = {row["code"]: row for row in loader.load(config.milestone_lookup_sql)}
+                logger.info("Loaded %d entries from milestone lookup.", len(self.milestone_lookup))
+            except sqlite3.OperationalError as e:
+                logger.warning("Could not load milestone lookup table: %s.", e)
+
+        if config.split_milestone_codes and not self.milestone_lookup:
+            logger.warning("split_milestone_codes is enabled but no milestone lookup data is available.")
 
         logger.info("MappingTemplate data loaded")
         data = loader.load(config.selector)
@@ -288,7 +288,11 @@ class OCDSDataMapper:
                 if contract_milestones_processed_for_this_row and path.startswith("/contracts/milestones/"):
                     continue
 
-                if path in ("/contracts/milestones/id", "/contracts/milestones/type", "/contracts/milestones/status"):
+                if self.config.mapping.split_milestone_codes and path in {
+                    "/contracts/milestones/id",
+                    "/contracts/milestones/type",
+                    "/contracts/milestones/status",
+                }:
                     code_mapping = mapping_config.get_mapping_for("/contracts/milestones/code")
                     if code_mapping:
                         code_col = code_mapping[0]["mapping"]
@@ -296,7 +300,12 @@ class OCDSDataMapper:
                         if isinstance(code_val, str) and " " in code_val:
                             continue
 
-                if path == "/contracts/milestones/code" and isinstance(value, str) and " " in value:
+                if (
+                    self.config.mapping.split_milestone_codes
+                    and path == "/contracts/milestones/code"
+                    and isinstance(value, str)
+                    and " " in value
+                ):
                     current_contract_id = None
                     contract_id_map = mapping_config.get_mapping_for("/contracts/id")
                     if contract_id_map:
@@ -310,12 +319,12 @@ class OCDSDataMapper:
                                 found_contract = contract
                                 break
 
+                        known_codes = set(self.milestone_lookup)
                         if (
                             found_contract
                             and found_contract.get("milestones")
-                            and any(
-                                m.get("code") in {"CA", "AT", "AU", "DR", "PA"} for m in found_contract["milestones"]
-                            )
+                            and known_codes
+                            and any(m.get("code") in known_codes for m in found_contract["milestones"])
                         ):
                             contract_milestones_processed_for_this_row = True
                             continue
@@ -338,7 +347,7 @@ class OCDSDataMapper:
                     for code in codes:
                         title = None
                         description = None
-                        if lookup_data := self.release_lookup.get(code):
+                        if lookup_data := self.milestone_lookup.get(code):
                             title = lookup_data.get("title")
                             description = lookup_data.get("description")
 

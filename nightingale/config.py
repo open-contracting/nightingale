@@ -34,6 +34,13 @@ class Mapping:
     selector: str
     force_publish: bool | None = False
     codelists: Path | None = None
+    #: SQL query to load milestone code metadata. Must return ``code``, ``title`` and ``description`` columns.
+    #: Used to enrich milestones with titles and descriptions, and to identify known codes for deduplication.
+    milestone_lookup_sql: str | None = None
+    #: Whether to split space-separated milestone codes into individual milestone objects. When enabled, a value
+    #: like ``"CA AT AU"`` in the milestone code field produces three separate milestones. Requires the source data
+    #: to encode multiple codes in a single field; do not enable if milestone codes can legitimately contain spaces.
+    split_milestone_codes: bool = False
     #: OCDS paths at which to keep source values that aren't in the codelist, instead of discarding them.
     #: Useful when values are derived via SQL logic (e.g. CASE expressions) and are absent from the codelist file.
     codelist_passthrough_paths: tuple[str, ...] = ()
