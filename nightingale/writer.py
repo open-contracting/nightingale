@@ -16,7 +16,6 @@ def new_name(package: dict | list) -> str:
     :param package: The release package dictionary.
     :return: The generated package name.
     """
-
     if isinstance(package, list):
         date = datetime.now().isoformat()
     else:
@@ -95,7 +94,7 @@ class DataWriter:
         Writes a single release to the open package file stream.
         """
         if not self._file_handler:
-            raise IOError("Stream writing has not been started. Call start_package_stream() first.")
+            raise OSError("Stream writing has not been started. Call start_package_stream() first.")
 
         if not self._is_first_release:
             self._file_handler.write(",\n")

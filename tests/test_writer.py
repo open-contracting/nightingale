@@ -9,7 +9,7 @@ from nightingale.writer import DataWriter
 
 class TestDataWriter(unittest.TestCase):
     def setUp(self):
-        self.config = Output(**{"directory": "./test_dir"})
+        self.config = Output(directory="./test_dir")
         self.writer = DataWriter(self.config)
         self.package = {"publishedDate": "2022-01-01", "data": "test_data"}
 
@@ -34,7 +34,7 @@ class TestDataWriter(unittest.TestCase):
         self.writer.write(self.package)
         output_path = self.writer.get_output_path(self.package)
         self.assertTrue(output_path.exists())
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             data = json.load(f)
         self.assertEqual(data, self.package)
 

@@ -41,7 +41,7 @@ class MappingTemplate:
         """Normalize the mapping column by setting all space separators to one space"""
         for mapping in mappings:
             if "  " in mapping["mapping"]:
-                mapping["mapping"] = " ".join((p.strip() for p in mapping["mapping"].split("  ")))
+                mapping["mapping"] = " ".join(p.strip() for p in mapping["mapping"].split("  "))
         return mappings
 
     def read_mapping_sheet(self, sheet):

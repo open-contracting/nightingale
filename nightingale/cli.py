@@ -116,9 +116,9 @@ def run(
         selector_content = config_data["mapping"]["selector"]
         if selector:
             try:
-                with open(selector, "r") as f:
+                with open(selector) as f:
                     selector_content = f.read()
-            except (OSError, IOError) as e:
+            except OSError as e:
                 raise click.ClickException(f"Error reading selector file {selector}: {e}")
         # TODO: simplify this
         config_data["mapping"] = {

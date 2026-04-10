@@ -14,16 +14,13 @@ def remove_dicts_without_id(data):
             if cleaned_v := remove_dicts_without_id(val):
                 result[k] = cleaned_v
         return result
-    elif isinstance(data, list):
+    if isinstance(data, list):
         all_items = []
         for item in data:
-            if not (isinstance(item, dict) and "id" not in item):
-                all_items.append(remove_dicts_without_id(item))
-            elif isinstance(item, dict) and item.get("verificationMethod"):
+            if not (isinstance(item, dict) and "id" not in item) or (isinstance(item, dict) and item.get("verificationMethod")):
                 all_items.append(remove_dicts_without_id(item))
         return all_items
-    else:
-        return data
+    return data
 
 
 def get_iso_now():

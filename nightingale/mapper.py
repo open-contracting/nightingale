@@ -3,7 +3,6 @@ import time
 from typing import Any
 
 import dict_hash
-import simplejson as json
 
 from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
@@ -252,24 +251,23 @@ class OCDSDataMapper:
                         nested_dict[last_key].append(value)
                 else:
                     nested_dict[last_key] = value
-            else:
-                if last_key in nested_dict:
-                    if isinstance(nested_dict[last_key], list) and add_new:
-                        if value in nested_dict[last_key] and append_once:
-                            return
-                        nested_dict[last_key].append(value)
-                    elif isinstance(nested_dict[last_key], dict):
-                        nested_dict[last_key].update(value)
-                    else:
-                        nested_dict[last_key] = value
+            elif last_key in nested_dict:
+                if isinstance(nested_dict[last_key], list) and add_new:
+                    if value in nested_dict[last_key] and append_once:
+                        return
+                    nested_dict[last_key].append(value)
+                elif isinstance(nested_dict[last_key], dict):
+                    nested_dict[last_key].update(value)
                 else:
-                    subpath = "/" + "/".join(keys)
-                    if schema.get(subpath, {}).get("type") == "array" and not isinstance(value, list):
-                        if add_new and isinstance(value, dict):  # Milestone logic
-                            value = [value]
-                        else:
-                            value = [value]
                     nested_dict[last_key] = value
+            else:
+                subpath = "/" + "/".join(keys)
+                if schema.get(subpath, {}).get("type") == "array" and not isinstance(value, list):
+                    if add_new and isinstance(value, dict):  # Milestone logic
+                        value = [value]
+                    else:
+                        value = [value]
+                nested_dict[last_key] = value
 
         if not result:
             result = {}
@@ -398,22 +396,18 @@ class OCDSDataMapper:
                                 continue
                         set_nested_value(result, keys, value, flattened_schema, add_new=True, append_once=True)
                         continue
-                    elif "criteria" in path:
+                    if "criteria" in path:
                         if child_path != "criteria":
                             if result.get("tender") and result["tender"].get("selectionCriteria", None):
-                                if len(result["tender"]["selectionCriteria"]["criteria"]) == 0:
+                                if len(result["tender"]["selectionCriteria"]["criteria"]) == 0 or last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1].keys():
                                     result["tender"]["selectionCriteria"]["criteria"].append({})
-                                else:
-                                    if last_key_name in result["tender"]["selectionCriteria"]["criteria"][-1].keys():
-                                        result["tender"]["selectionCriteria"]["criteria"].append({})
                     elif array_path in array_counters:
                         if add_new := is_new_array(array_counters, child_path, last_key_name, array_value, array_path):
                             array_counters[array_path] = array_value
                             set_nested_value(result, keys[:-1], {}, flattened_schema, add_new=add_new)
-                    else:
-                        if last_key_name == "id":
-                            array_counters[array_path] = array_value
-                            set_nested_value(result, keys[:-1], {}, flattened_schema, True)
+                    elif last_key_name == "id":
+                        array_counters[array_path] = array_value
+                        set_nested_value(result, keys[:-1], {}, flattened_schema, True)
 
                     current: Any = result
                     for i, key in enumerate(keys[:-1]):
@@ -433,15 +427,14 @@ class OCDSDataMapper:
                                                 if last_key_name != "minimum":
                                                     current = result["tender"]["selectionCriteria"]["criteria"][index]
                                                     break
-                                                else:
-                                                    if (
-                                                        len(criterion.keys()) == 0
-                                                        or criterion.get("type", "") == "economic"
-                                                    ):
-                                                        current = result["tender"]["selectionCriteria"]["criteria"][
-                                                            index
-                                                        ]
-                                                        break
+                                                if (
+                                                    len(criterion.keys()) == 0
+                                                    or criterion.get("type", "") == "economic"
+                                                ):
+                                                    current = result["tender"]["selectionCriteria"]["criteria"][
+                                                        index
+                                                    ]
+                                                    break
 
                             else:
                                 current = self.shift_current_array(current, current_path, array_counters)
@@ -512,24 +505,24 @@ class OCDSDataMapper:
         """
         release_data["tag"] = []
 
-        if "planning" in release_data and release_data["planning"]:
+        if release_data.get("planning"):
             release_data["tag"].append("planning")
 
-        if "tender" in release_data and release_data["tender"]:
+        if release_data.get("tender"):
             release_data["tag"].append("tender")
             if "amendments" in release_data["tender"] and release_data["tender"]["amendments"]:
                 release_data["tag"].append("tenderAmendment")
 
-        if "awards" in release_data and release_data["awards"]:
+        if release_data.get("awards"):
             release_data["tag"].append("award")
 
         implementation_present = False
-        if "contracts" in release_data and release_data["contracts"]:
+        if release_data.get("contracts"):
             release_data["tag"].append("contract")
             if any("amendments" in contract and contract["amendments"] for contract in release_data["contracts"]):
                 release_data["tag"].append("contractAmendment")
             for contract in release_data["contracts"]:
-                if "implementation" in contract and contract["implementation"]:
+                if contract.get("implementation"):
                     implementation_present = True
                     break
         if implementation_present:
@@ -542,7 +535,6 @@ class OCDSDataMapper:
         :param data: The data dictionary to process.
         :type data: dict[str, Any]
         """
-
         return remove_dicts_without_id(data)
 
     def map_codelist_value(self, keys, schema, codelists, value):
@@ -552,7 +544,7 @@ class OCDSDataMapper:
             if codelist:
                 if new_value := codelist.get(value):
                     return new_value
-                elif path not in ["/tender/status", "/tender/procurementMethod"]:
+                if path not in ["/tender/status", "/tender/procurementMethod"]:
                     # filter out value missing in codelists, exception are listed (we can set value based on internal logic)
                     return ""
         return value
@@ -580,6 +572,7 @@ def find_array_element_by_id(current, array_element_id):
 
         >>> find_array_element_by_id([], 1) is None
         True
+
     """
     for item in current:
         if item.get("id") == array_element_id:
