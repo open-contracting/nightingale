@@ -49,7 +49,7 @@ def load_config(config_file):
     required=True,
 )
 @click.option("--package", is_flag=True, default=False, help="Package data")
-@click.option("--stream", is_flag=True, default=True, help="Enable streaming to output file")
+@click.option("--stream/--no-stream", default=True, help="Enable streaming to output file")
 @click.option("--validate-mapping", is_flag=True, default=False, help="Validate mapping template")
 @click.option(
     "--loglevel",

@@ -69,7 +69,7 @@ class TestCli(unittest.TestCase):
 
         mock_mapper_instance.map.return_value = [{"dummy_data": "data"}]
 
-        result = self.runner.invoke(run, ["--config", str(self.config_path), "--loglevel", "INFO"])
+        result = self.runner.invoke(run, ["--config", str(self.config_path), "--no-stream", "--loglevel", "INFO"])
 
         self.assertEqual(result.exit_code, 0)
         mock_mapper.assert_called_once()
@@ -101,7 +101,9 @@ class TestCli(unittest.TestCase):
         mock_mapper_instance.map.return_value = {"dummy_data": "data"}
         mock_publisher_instance.package.return_value = {"packaged_data": "data"}
 
-        result = self.runner.invoke(run, ["--config", str(self.config_path), "--package", "--loglevel", "INFO"])
+        result = self.runner.invoke(
+            run, ["--config", str(self.config_path), "--package", "--no-stream", "--loglevel", "INFO"]
+        )
 
         self.assertEqual(result.exit_code, 0)
         mock_mapper.assert_called_once()
@@ -109,6 +111,40 @@ class TestCli(unittest.TestCase):
         mock_writer.assert_called_once()
         mock_publisher.assert_called_once()
         mock_writer_instance.write.assert_called_once_with({"packaged_data": "data"})
+
+    @patch("nightingale.cli.Config.from_file")
+    @patch("nightingale.cli.OCDSDataMapper")
+    @patch("nightingale.cli.DataLoader")
+    @patch("nightingale.cli.DataWriter")
+    @patch("nightingale.cli.DataPublisher")
+    def test_run_with_stream(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
+        # Setup mocks
+        mock_config.return_value = MagicMock()
+        mock_mapper_instance = MagicMock()
+        mock_mapper.return_value = mock_mapper_instance
+
+        mock_loader_instance = MagicMock()
+        mock_loader.return_value = mock_loader_instance
+
+        mock_writer_instance = MagicMock()
+        mock_writer.return_value = mock_writer_instance
+        mock_writer_instance.is_streaming.return_value = True
+
+        mock_publisher_instance = MagicMock()
+        mock_publisher.return_value = mock_publisher_instance
+        mock_publisher_instance.package.return_value = {"releases": [], "uri": "http://test"}
+
+        result = self.runner.invoke(run, ["--config", str(self.config_path), "--loglevel", "INFO"])
+
+        self.assertEqual(result.exit_code, 0)
+        mock_mapper.assert_called_once()
+        mock_loader.assert_called_once()
+        mock_writer.assert_called_once()
+        mock_publisher.assert_called_once()
+        mock_writer_instance.start_package_stream.assert_called_once_with({"uri": "http://test"})
+        mock_mapper_instance.map.assert_called_once()
+        mock_writer_instance.write.assert_not_called()
+        mock_writer_instance.end_package_stream.assert_called_once()
 
     def test_setup_logging(self):
         with self.assertLogs(level="DEBUG") as log:
@@ -166,7 +202,16 @@ class TestCli(unittest.TestCase):
         mock_mapper_instance.map.return_value = [{"dummy_data": "data"}]
 
         result = self.runner.invoke(
-            run, ["--config", str(self.config_path), "--selector", str(self.selector_path), "--loglevel", "INFO"]
+            run,
+            [
+                "--config",
+                str(self.config_path),
+                "--selector",
+                str(self.selector_path),
+                "--no-stream",
+                "--loglevel",
+                "INFO",
+            ],
         )
 
         self.assertEqual(result.exit_code, 0)
