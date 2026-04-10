@@ -34,7 +34,7 @@ def load_config(config_file):
     :return: Dictionary with configuration data.
     """
     try:
-        with open(config_file, "rb") as f:
+        with config_file.open("rb") as f:
             return tomllib.load(f)
     except tomllib.TOMLDecodeError:
         raise click.ClickException(f"Error decoding TOML from {config_file}.")
@@ -115,7 +115,7 @@ def run(
             config_data["datasource"] = {"connection": datasource}
         if selector:
             try:
-                with open(selector) as f:
+                with selector.open() as f:
                     config_data["mapping"]["selector"] = f.read()
             except OSError as e:
                 raise click.ClickException(f"Error reading selector file {selector}: {e}")

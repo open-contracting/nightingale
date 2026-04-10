@@ -17,7 +17,7 @@ class TestCli(unittest.TestCase):
         self.invalid_config_path = Path(self.temp_dir.name) / "invalid_test_config.toml"
         self.selector_data = "SELECT * FROM test_table;"
         self.selector_path = Path(self.temp_dir.name) / "test_selector.sql"
-        with open(self.selector_path, "w") as f:
+        with self.selector_path.open("w") as f:
             f.write(self.selector_data)
         self.config_data = """
         [datasource]
@@ -37,14 +37,14 @@ class TestCli(unittest.TestCase):
         [output]
         directory = "test_output_directory"
         """
-        with open(self.config_path, "w") as f:
+        with self.config_path.open("w") as f:
             f.write(self.config_data)
 
         self.invalid_config_data = """
         [datasource
         connection = "test_connection"
         """
-        with open(self.invalid_config_path, "w") as f:
+        with self.invalid_config_path.open("w") as f:
             f.write(self.invalid_config_data)
 
     def tearDown(self):

@@ -34,7 +34,7 @@ class TestDataWriter(unittest.TestCase):
         self.writer.write(self.package)
         output_path = self.writer.get_output_path(self.package)
         assert output_path.exists()
-        with open(output_path) as f:
+        with output_path.open() as f:
             data = json.load(f)
         assert data == self.package
 

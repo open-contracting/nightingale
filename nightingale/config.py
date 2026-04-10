@@ -45,6 +45,6 @@ class Config:
 
     @classmethod
     def from_file(cls, config_file: Path) -> "Config":
-        with open(config_file, "rb") as f:
+        with config_file.open("rb") as f:
             data = tomllib.load(f)
         return TypeAdapter(Config).validate_python(data)
