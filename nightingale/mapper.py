@@ -415,7 +415,7 @@ class OCDSDataMapper:
                             array_counters[array_path] = array_value
                             set_nested_value(result, keys[:-1], {}, flattened_schema, True)
 
-                    current = result
+                    current: Any = result
                     for i, key in enumerate(keys[:-1]):
                         current_path = "/" + "/".join(keys[: i + 1])
                         is_array = flattened_schema.get(current_path, {}).get("type") == "array"

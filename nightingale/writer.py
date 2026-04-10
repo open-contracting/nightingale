@@ -1,3 +1,4 @@
+import io
 import os
 from datetime import datetime
 from pathlib import Path
@@ -35,7 +36,7 @@ class DataWriter:
         :param config: Configuration object containing settings for the writer.
         """
         self.config = config
-        self._file_handler = None
+        self._file_handler: io.TextIOWrapper | None = None
         self._is_first_release = True
         self._output_path = None
 
