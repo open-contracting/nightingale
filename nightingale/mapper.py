@@ -311,7 +311,7 @@ class OCDSDataMapper:
                             found_contract
                             and found_contract.get("milestones")
                             and any(
-                                m.get("code") in ["CA", "AT", "AU", "DR", "PA"] for m in found_contract["milestones"]
+                                m.get("code") in {"CA", "AT", "AU", "DR", "PA"} for m in found_contract["milestones"]
                             )
                         ):
                             contract_milestones_processed_for_this_row = True
@@ -482,9 +482,9 @@ class OCDSDataMapper:
 
     def generate_tags(self, release_data) -> None:
         """
-        Generate the release tag(s) based on the current release data,
-        excluding 'update' tags, 'compiled' tag, and 'cancellation' tags,
-        and without considering prior releases.
+        Generate the release tag(s) based on the current release data, without considering prior releases.
+
+        Exclude 'update' tags, 'cancellation' tags and the 'compiled' tag.
 
         :param release_data: The current release data (dict).
         :return: A list of tags (list of str).
@@ -530,16 +530,17 @@ class OCDSDataMapper:
             if codelist:
                 if new_value := codelist.get(value):
                     return new_value
-                if path not in ["/tender/status", "/tender/procurementMethod"]:
-                    # filter out value missing in codelists, exception are listed (we can set value based on internal logic)
+                if path not in {"/tender/status", "/tender/procurementMethod"}:
+                    # Discard values not in the codelist, except the above paths.
                     return ""
         return value
 
 
 def find_array_element_by_id(current, array_element_id):
     """
-    Finds and returns the first dictionary in a list of dictionaries that contains the given 'id' value.
-    If no dictionary with the matching 'id' is found, returns the last dictionary in the list.
+    Find the first dictionary in a list that contains the given 'id' value.
+
+    If no dictionary with the matching 'id' is found, return the last dictionary in the list.
 
     :param current: List[Dict], a list of dictionaries to search.
     :param array_element_id: Any, the target 'id' value to search for.

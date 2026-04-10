@@ -95,10 +95,11 @@ def group_contiguous_mappings(mapping_list: list[dict]) -> list[tuple[str, list[
 
 def sort_group_by_parent_and_id(group: list[dict]) -> list[dict]:
     """
-    For a given contiguous group of mapping items, further split the group into subgroups
-    that share the same parent (i.e. everything before the final '/'). Then, for each subgroup,
-    sort so that any item whose path ends with '/id' comes first.
-    The sorted subgroups are then concatenated in the original order.
+    Sort a contiguous group of mapping items so that '/id' paths come first within each parent.
+
+    Split the group into subgroups that share the same parent (i.e. everything before the
+    final '/'). Then, for each subgroup, sort so that any item whose path ends with '/id'
+    comes first. The sorted subgroups are then concatenated in the original order.
     """
     sorted_list = []
     current_subgroup = []
