@@ -48,9 +48,9 @@ def load_config(config_file):
     type=click_pathlib.Path(exists=True),
     required=True,
 )
-@click.option("--package", is_flag=True, default=False, help="Package data")
-@click.option("--stream/--no-stream", default=True, help="Enable streaming to output file")
-@click.option("--validate-mapping", is_flag=True, default=False, help="Validate mapping template")
+@click.option("--package", is_flag=True, default=False, help="Package the data into a release package")
+@click.option("--stream/--no-stream", default=True, help="Enable or disable streaming to the output file")
+@click.option("--validate-mapping", is_flag=True, default=False, help="Validate the mapping template")
 @click.option(
     "--loglevel",
     type=click.Choice(["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], case_sensitive=False),
@@ -61,15 +61,15 @@ def load_config(config_file):
 @click.option("--mapping-file", type=click_pathlib.Path(exists=True), help="Mapping file path")
 @click.option("--codelists-file", type=click_pathlib.Path(exists=True), help="Codelists mapping file path")
 @click.option("--ocid-prefix", type=str, help="OCID prefix")
-@click.option("--selector", type=click_pathlib.Path(exists=True), help="Path to selector SQL script")
+@click.option("--selector", type=click_pathlib.Path(exists=True), help="Selector SQL script path")
 @click.option("--force-publish", is_flag=True, help="Force publish")
 @click.option("--publisher", type=str, help="Publisher name")
 @click.option("--base-uri", type=str, help="Package base URI")
-@click.option("--version", type=str, help="OCDS Version")
+@click.option("--version", type=str, help="OCDS version")
 @click.option("--publisher-uid", type=str, help="Publisher UID")
 @click.option("--publisher-scheme", type=str, help="Publisher scheme")
 @click.option("--publisher-uri", type=str, help="Publisher URI")
-@click.option("--extensions", type=str, multiple=True, help="List of extensions")
+@click.option("--extensions", type=str, multiple=True, help="Extension URL")
 @click.option("--output-directory", type=click_pathlib.Path(exists=True), help="Output directory")
 def run(
     config_file,
