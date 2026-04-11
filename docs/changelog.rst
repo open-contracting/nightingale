@@ -66,6 +66,11 @@ API changes
 -  Rename package and command to ``ocdsnightingale``.
 -  Unpin dependencies.
 
+Removed
+~~~~~~~
+
+-  Move Portland configuration files to `open-contracting/data-support <https://github.com/open-contracting/data-support/tree/main/portland_ocds>`__.
+
 0.0.1 (2026-10-04)
 ------------------
 
