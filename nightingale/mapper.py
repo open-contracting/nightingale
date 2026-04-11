@@ -20,7 +20,9 @@ from nightingale.writer import DataWriter
 
 logger = logging.getLogger(__name__)
 
+#: Log a progress message every this many rows, and report releases that meet or exceed this row count.
 LARGE_RELEASE_ROW_THRESHOLD = 500_000
+#: Report releases that take longer than this many seconds to process.
 SLOW_RELEASE_SECONDS = 18_000  # 5 hours
 
 
