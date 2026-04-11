@@ -66,6 +66,7 @@ API changes
 -  Rename package to ``ocdsnightingale``.
 -  Rename command to ``ocdsnightingale``.
 -  Rename ``ocdsnightingale.utils`` module to :mod:`ocdsnightingale.util`.
+-  Rename ``ocdsnightingale.cli`` module to :mod:`ocdsnightingale.__main__`.
 -  Unpin dependencies.
 
 Removed

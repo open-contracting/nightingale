@@ -71,7 +71,7 @@ def load_config(config_file):
 @click.option("--publisher-uri", type=str, help="Publisher URI")
 @click.option("--extensions", type=str, multiple=True, help="Extension URL")
 @click.option("--output-directory", type=click_pathlib.Path(exists=True), help="Output directory")
-def run(
+def main(
     config_file,
     package,
     stream,
@@ -190,4 +190,4 @@ def run(
 
 
 if __name__ == "__main__":
-    run()
+    main()

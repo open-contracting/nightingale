@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from click.testing import CliRunner
 
-from nightingale.cli import run, setup_logging
+from nightingale.__main__ import main, setup_logging
 
 
 class TestCli(unittest.TestCase):
@@ -50,12 +50,12 @@ class TestCli(unittest.TestCase):
     def tearDown(self):
         self.temp_dir.cleanup()
 
-    @patch("nightingale.cli.Config.from_file")
-    @patch("nightingale.cli.OCDSDataMapper")
-    @patch("nightingale.cli.DataLoader")
-    @patch("nightingale.cli.DataWriter")
-    @patch("nightingale.cli.DataPublisher")
-    def test_run_without_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
+    @patch("nightingale.__main__.Config.from_file")
+    @patch("nightingale.__main__.OCDSDataMapper")
+    @patch("nightingale.__main__.DataLoader")
+    @patch("nightingale.__main__.DataWriter")
+    @patch("nightingale.__main__.DataPublisher")
+    def test_main_without_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
         mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
@@ -69,7 +69,7 @@ class TestCli(unittest.TestCase):
 
         mock_mapper_instance.map.return_value = [{"dummy_data": "data"}]
 
-        result = self.runner.invoke(run, ["--config", str(self.config_path), "--no-stream", "--loglevel", "INFO"])
+        result = self.runner.invoke(main, ["--config", str(self.config_path), "--no-stream", "--loglevel", "INFO"])
 
         assert result.exit_code == 0
         mock_mapper.assert_called_once()
@@ -78,12 +78,12 @@ class TestCli(unittest.TestCase):
         mock_writer_instance.write.assert_called_once_with([{"dummy_data": "data"}])
         mock_publisher.assert_not_called()
 
-    @patch("nightingale.cli.Config.from_file")
-    @patch("nightingale.cli.OCDSDataMapper")
-    @patch("nightingale.cli.DataLoader")
-    @patch("nightingale.cli.DataWriter")
-    @patch("nightingale.cli.DataPublisher")
-    def test_run_with_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
+    @patch("nightingale.__main__.Config.from_file")
+    @patch("nightingale.__main__.OCDSDataMapper")
+    @patch("nightingale.__main__.DataLoader")
+    @patch("nightingale.__main__.DataWriter")
+    @patch("nightingale.__main__.DataPublisher")
+    def test_main_with_package(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
         mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
@@ -102,7 +102,7 @@ class TestCli(unittest.TestCase):
         mock_publisher_instance.package.return_value = {"packaged_data": "data"}
 
         result = self.runner.invoke(
-            run, ["--config", str(self.config_path), "--package", "--no-stream", "--loglevel", "INFO"]
+            main, ["--config", str(self.config_path), "--package", "--no-stream", "--loglevel", "INFO"]
         )
 
         assert result.exit_code == 0
@@ -112,12 +112,12 @@ class TestCli(unittest.TestCase):
         mock_publisher.assert_called_once()
         mock_writer_instance.write.assert_called_once_with({"packaged_data": "data"})
 
-    @patch("nightingale.cli.Config.from_file")
-    @patch("nightingale.cli.OCDSDataMapper")
-    @patch("nightingale.cli.DataLoader")
-    @patch("nightingale.cli.DataWriter")
-    @patch("nightingale.cli.DataPublisher")
-    def test_run_with_stream(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
+    @patch("nightingale.__main__.Config.from_file")
+    @patch("nightingale.__main__.OCDSDataMapper")
+    @patch("nightingale.__main__.DataLoader")
+    @patch("nightingale.__main__.DataWriter")
+    @patch("nightingale.__main__.DataPublisher")
+    def test_main_with_stream(self, mock_publisher, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
         mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
@@ -134,7 +134,7 @@ class TestCli(unittest.TestCase):
         mock_publisher.return_value = mock_publisher_instance
         mock_publisher_instance.package.return_value = {"releases": [], "uri": "http://test"}
 
-        result = self.runner.invoke(run, ["--config", str(self.config_path), "--loglevel", "INFO"])
+        result = self.runner.invoke(main, ["--config", str(self.config_path), "--loglevel", "INFO"])
 
         assert result.exit_code == 0
         mock_mapper.assert_called_once()
@@ -153,11 +153,11 @@ class TestCli(unittest.TestCase):
 
         assert "This is a debug message" in log.output[0]
 
-    @patch("nightingale.cli.Config.from_file")
-    @patch("nightingale.cli.OCDSDataMapper")
-    @patch("nightingale.cli.DataLoader")
-    @patch("nightingale.cli.DataWriter")
-    def test_run_mapping_crash(self, mock_writer, mock_loader, mock_mapper, mock_config):
+    @patch("nightingale.__main__.Config.from_file")
+    @patch("nightingale.__main__.OCDSDataMapper")
+    @patch("nightingale.__main__.DataLoader")
+    @patch("nightingale.__main__.DataWriter")
+    def test_main_mapping_crash(self, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
         mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
@@ -171,7 +171,7 @@ class TestCli(unittest.TestCase):
 
         mock_mapper_instance.map.side_effect = Exception("Simulated mapping crash")
 
-        result = self.runner.invoke(run, ["--config", str(self.config_path), "--loglevel", "INFO"])
+        result = self.runner.invoke(main, ["--config", str(self.config_path), "--loglevel", "INFO"])
 
         assert result.exit_code != 0
         assert "Error during transformation: Simulated mapping crash" in result.output
@@ -179,15 +179,15 @@ class TestCli(unittest.TestCase):
         mock_loader.assert_called_once()
 
     def test_invalid_toml_file(self):
-        result = self.runner.invoke(run, ["--config", str(self.invalid_config_path), "--loglevel", "INFO"])
+        result = self.runner.invoke(main, ["--config", str(self.invalid_config_path), "--loglevel", "INFO"])
         assert result.exit_code != 0
         assert "Error decoding TOML" in result.output
 
-    @patch("nightingale.cli.Config.from_file")
-    @patch("nightingale.cli.OCDSDataMapper")
-    @patch("nightingale.cli.DataLoader")
-    @patch("nightingale.cli.DataWriter")
-    def test_run_with_selector_file(self, mock_writer, mock_loader, mock_mapper, mock_config):
+    @patch("nightingale.__main__.Config.from_file")
+    @patch("nightingale.__main__.OCDSDataMapper")
+    @patch("nightingale.__main__.DataLoader")
+    @patch("nightingale.__main__.DataWriter")
+    def test_main_with_selector_file(self, mock_writer, mock_loader, mock_mapper, mock_config):
         # Setup mocks
         mock_config.return_value = MagicMock()
         mock_mapper_instance = MagicMock()
@@ -202,7 +202,7 @@ class TestCli(unittest.TestCase):
         mock_mapper_instance.map.return_value = [{"dummy_data": "data"}]
 
         result = self.runner.invoke(
-            run,
+            main,
             [
                 "--config",
                 str(self.config_path),
