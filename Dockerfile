@@ -1,20 +1,11 @@
-# Use the official Python base image
-FROM python:3.12-slim
+FROM python:3.12
 
-# Set the working directory
-WORKDIR /app
+RUN groupadd -r runner && useradd --no-log-init -r -g runner runner
 
-# Copy the requirements file into the container
-COPY pyproject.toml .
+COPY . /tmp/build
+RUN pip install --no-cache-dir /tmp/build && rm -rf /tmp/build
 
-# Install the dependencies
-RUN pip install --upgrade pip
+WORKDIR /workdir
+USER runner:runner
 
-# Copy the rest of the application code into the container
-COPY . .
-
-# Install the ocds-nightingale package
-RUN pip install -e .
-
-# Set the entrypoint command
 ENTRYPOINT ["ocdsnightingale"]
