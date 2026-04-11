@@ -9,7 +9,7 @@ from nightingale.codelists import CodelistsMapping
 from nightingale.config import Config
 from nightingale.mapping_template.v09 import MappingTemplate
 from nightingale.mapping_template.validator import MappingTemplateValidator
-from nightingale.utils import (
+from nightingale.util import (
     get_iso_now,
     group_contiguous_mappings,
     is_new_array,

@@ -2,7 +2,7 @@ import logging
 
 import openpyxl
 
-from nightingale.utils import get_longest_array_path
+from nightingale.util import get_longest_array_path
 
 logger = logging.getLogger(__name__)
 

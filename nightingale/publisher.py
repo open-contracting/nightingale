@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 from ocdskit.combine import package_releases
 
 from nightingale.config import Publishing
-from nightingale.utils import get_iso_now, produce_package_name
+from nightingale.util import get_iso_now, produce_package_name
 
 
 class DataPublisher:

@@ -6,7 +6,7 @@ import pytest
 
 from nightingale.config import Config, Datasource, Mapping, Output, Publishing
 from nightingale.mapper import OCDSDataMapper
-from nightingale.utils import get_longest_array_path
+from nightingale.util import get_longest_array_path
 
 
 class DummyOcdsMappingTemplate:

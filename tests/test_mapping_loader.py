@@ -4,7 +4,7 @@ import openpyxl
 import pytest
 
 from nightingale.mapping_template.v09 import MappingTemplate
-from nightingale.utils import get_longest_array_path
+from nightingale.util import get_longest_array_path
 
 
 def _sheets():

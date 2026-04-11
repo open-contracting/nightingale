@@ -63,7 +63,9 @@ API changes
    -  :meth:`nightingale.mapper.OCDSDataMapper.map`
    -  :meth:`nightingale.mapping_template.v09.MappingTemplate.get_paths_for_mapping`
 
--  Rename package and command to ``ocdsnightingale``.
+-  Rename package to ``ocdsnightingale``.
+-  Rename command to ``ocdsnightingale``.
+-  Rename ``ocdsnightingale.utils`` module to :mod:`ocdsnightingale.util`.
 -  Unpin dependencies.
 
 Removed

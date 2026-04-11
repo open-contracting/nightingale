@@ -36,7 +36,7 @@ API Reference
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: nightingale.utils
+.. automodule:: nightingale.util
     :members:
     :undoc-members:
     :show-inheritance:

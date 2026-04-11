@@ -6,7 +6,7 @@ import simplejson as json
 
 from nightingale.config import Output
 from nightingale.exceptions import StreamNotStartedError
-from nightingale.utils import get_iso_now, produce_package_name
+from nightingale.util import get_iso_now, produce_package_name
 
 if TYPE_CHECKING:
     import io
