@@ -73,7 +73,7 @@ ignore-variadic-names = true
 "tests/*" = [
     "ARG001", "D", "FBT003", "INP001", "PLR2004", "S", "TRY003",
 ]
-"nightingale/__main__.py" = ["BLE001", "TRY003"]  # click
+"nightingale/__main__.py" = ["TRY003"]  # click
 
 [tool.mypy]
 strict = true
