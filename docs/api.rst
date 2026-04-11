@@ -1,6 +1,11 @@
 API Reference
 =============
 
+.. automodule:: nightingale.config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 .. automodule:: nightingale.loader
     :members:
     :undoc-members:
@@ -11,7 +16,7 @@ API Reference
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: nightingale.config
+.. automodule:: nightingale.mapping_template.v09
     :members:
     :undoc-members:
     :show-inheritance:
@@ -21,7 +26,22 @@ API Reference
     :undoc-members:
     :show-inheritance:
 
-.. automodule:: nightingale.mapping_template.v09
+.. automodule:: nightingale.publisher
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: nightingale.writer
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: nightingale.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+.. automodule:: nightingale.exceptions
     :members:
     :undoc-members:
     :show-inheritance:
