@@ -1,8 +1,8 @@
 Changelog
 =========
 
-Unreleased
-----------
+0.0.2 (2026-04-11)
+------------------
 
 Fixed
 ~~~~~
@@ -74,7 +74,7 @@ Removed
 
 -  Move Portland configuration files to `open-contracting/data-support <https://github.com/open-contracting/data-support/tree/main/portland_ocds>`__.
 
-0.0.1 (2026-10-04)
+0.0.1 (2026-04-10)
 ------------------
 
 First release.

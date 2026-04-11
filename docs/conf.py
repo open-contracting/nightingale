@@ -15,7 +15,7 @@ project = "OCDS Nightingale"
 copyright = "2024, Open Contracting Partnership"
 author = "Open Contracting Partnership"
 
-version = "0.0.1"
+version = "0.0.2"
 release = version
 
 # -- General configuration ---------------------------------------------------

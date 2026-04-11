@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ocdsnightingale"
-version = "0.0.1"
+version = "0.0.2"
 authors = [{name = "Open Contracting Partnership", email = "data@open-contracting.org"}]
 description = "Transform flat data from a SQLite database into the Open Contracting Data Standard (OCDS) format."
 readme = "README.rst"

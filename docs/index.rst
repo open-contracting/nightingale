@@ -13,6 +13,7 @@ Nightingale transforms data through the following steps:
 
 .. toctree::
    :caption: Contents:
+   :maxdepth: 2
 
    tutorial
    examples
