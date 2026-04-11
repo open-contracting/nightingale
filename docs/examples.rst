@@ -31,6 +31,7 @@ Example 1: Basic Transformation
 
        [publishing]
        publisher = 'Sample Publisher'
+       base_uri = 'https://example.com'
        version = '1.1'
 
        [output]
@@ -96,6 +97,7 @@ Example 2: Transformation with Packaging
 
        [publishing]
        publisher = 'Sample Publisher'
+       base_uri = 'https://example.com'
        version = '1.1'
 
        [output]
@@ -149,6 +151,7 @@ You may need to manipulate data within the SQL query itself before it is fed int
 
        [publishing]
        publisher = 'Sample Publisher'
+       base_uri = 'https://example.com'
        version = '1.1'
 
        [output]
@@ -267,6 +270,7 @@ If the required data spans across multiple tables, you can use SQL JOINs to comb
 
        [publishing]
        publisher = 'Sample Publisher'
+       base_uri = 'https://example.com'
        version = '1.1'
 
        [output]

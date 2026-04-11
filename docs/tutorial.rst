@@ -87,6 +87,7 @@ Setup
 
        [publishing]
        publisher = 'Sample Publisher'
+       base_uri = 'https://example.com'
        version = '1.1'
 
        [output]
