@@ -7,7 +7,7 @@ name = "ocdsnightingale"
 version = "0.0.1"
 authors = [{name = "Open Contracting Partnership", email = "data@open-contracting.org"}]
 description = "Transform flat data from a SQLite database into the Open Contracting Data Standard (OCDS) format."
-readme = "README.md"
+readme = "README.rst"
 license = {text = "BSD"}
 urls = {Homepage = "https://github.com/open-contracting/nightingale"}
 classifiers = [
