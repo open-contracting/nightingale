@@ -81,7 +81,7 @@ class OCDSDataMapper:
         if config.split_milestone_codes and not self.milestone_lookup:
             logger.warning("split_milestone_codes is enabled but no milestone lookup data is available.")
 
-        logger.info("MappingTemplate data loaded")
+        logger.info("Mapping data loaded")
         data = loader.load(config.selector)
         logger.info("Start fetching rows from datasource")
         if validate_mapping:

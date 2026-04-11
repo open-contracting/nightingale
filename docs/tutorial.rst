@@ -93,7 +93,7 @@ Setup
        [output]
        directory = 'output'
 
-3. **Prepare the MappingTemplate File:**
+3. **Prepare the Mapping File:**
 
    Use the following configuration for `mapping.xlsx` based on the `ocds field level mapping` template:
 
@@ -101,11 +101,11 @@ Setup
 
    .. code-block:: text
 
-       | Title         | Description   | Path             | Status   | MappingTemplate                             | Comment
-       |---------------|---------------|------------------|----------|------------------------------------ | -------
+       | Title         | Description   | Path             | Status   | Mapping                            | Comment
+       |---------------|---------------|------------------|----------|------------------------------------|--------
        | OCID          | unique ID     | ocid             | Required | example_table (id)                 | -
        | Party ID      | Party ID      | parties/id       | Optional | party_table (identifier)           | -
-       | Party Name    | Party Name    | parties/name     | Optional | party_table (name)
+       | Party Name    | Party Name    | parties/name     | Optional | party_table (name)                 | -
        | Role          | Role          | parties/roles    | Required | party_table (role)                 | -
 
 
@@ -113,10 +113,10 @@ Setup
 
    .. code-block:: text
 
-       id  | Title          | Description  | Path              | Status   | MappingTemplate                             | Comment
-       ----|----------------|--------------|-------------------|----------|------------------------------------ | -------
-       1   | Tender Title   | Tender title | tender/title      | Optional | example_table (name)               | -
-       2   | Value          | Tender value | tender/value/amount | Optional | example_table (value)             | -
+       id  | Title          | Description  | Path                | Status   | Mapping                            | Comment
+       ----|----------------|--------------|---------------------|----------|------------------------------------|--------
+       1   | Tender Title   | Tender title | tender/title        | Optional | example_table (name)               | -
+       2   | Value          | Tender value | tender/value/amount | Optional | example_table (value)              | -
 
 
 Running the Transformation
@@ -130,17 +130,17 @@ Run the transformation using the CLI:
 
 This will produce an output file in the `output` directory.
 
-MappingTemplate Configuration
------------------------------
+Mapping Configuration
+---------------------
 
-Field-level mapping is specified in the `mapping.xlsx` file. It is formed from stardard `"OCDS Field Level MappingTemplate template" <https://www.open-contracting.org/resources/ocds-field-level-mapping-template/>`_.
-For more information about how to fill the mapping file, refer to the `OCDS Field Level MappingTemplate template guidance <https://www.open-contracting.org/resources/ocds-1-1-mapping-template-guidance/>`_.
+Field-level mapping is specified in the `mapping.xlsx` file. It is formed from the standard `OCDS Field Level Mapping template <https://www.open-contracting.org/resources/ocds-field-level-mapping-template/>`_.
+For more information about how to fill the mapping file, refer to the `OCDS Field Level Mapping template guidance <https://www.open-contracting.org/resources/ocds-1-1-mapping-template-guidance/>`_.
 
-Here the bried description of the columns from mapping sheets in the mapping file:
+Here is a brief description of the columns from mapping sheets in the mapping file:
 
     * **Path**: The path in the OCDS release schema where the field value should be placed.
     * **Title**: A human-readable title for the field.
     * **Description**: A description of what the field represents.
-    * **MappingTemplate**: The field in the source data that maps to the OCDS path.
+    * **Mapping**: The field in the source data that maps to the OCDS path.
 
 Understanding these mappings will help you configure the transformation correctly for your data.
