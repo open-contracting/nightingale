@@ -26,8 +26,6 @@ Dates
    - the package's filename
 
 -  If ``--no-stream`` is set and ``--package`` isn't set, then the package's filename defaults to e.g. ``2026-04-10T21:30:00Z`` (``Z`` suffix and no microseconds), instead of e.g. ``2026-04-10T14:30:00.123456`` (microseconds and no ``Z`` suffix).
--  :meth:`nightingale.writer.DataWriter.write` and :func:`nightingale.writer.new_name` require the ``package`` argument to set ``"publishedDate"``, when the package is a ``dict``.
--  :meth:`nightingale.writer.DataWriter.start_package_stream` requires the ``package_metadata`` argument to set ``"publishedDate"``.
 
 Codes
 ^^^^^
@@ -46,27 +44,36 @@ Codes
       [mapping]
       milestone_lookup_sql = "SELECT code, title, description FROM [releases to Dte]"
 
-- The splitting of space-separated milestone codes is no longer performed by default. To migrate:
+-  The splitting of space-separated milestone codes is no longer performed by default. To migrate:
 
    .. code-block:: toml
 
       [mapping]
       split_milestone_codes = true
 
--  Rename :class:`nightingale.mapper.OCDSDataMapper`'s milestone lookup attribute from ``release_lookup`` to ``milestone_lookup``.
-
-API changes
-^^^^^^^^^^^
+API arguments
+^^^^^^^^^^^^^
 
 -  Keyword arguments are required for boolean arguments: :commit:`4268fcc`
 
    -  :meth:`nightingale.mapper.OCDSDataMapper.map`
    -  :meth:`nightingale.mapping_template.v09.MappingTemplate.get_paths_for_mapping`
 
+-  :meth:`nightingale.writer.DataWriter.write` and :func:`nightingale.writer.new_name` require the ``package`` argument to set ``"publishedDate"``, when the package is a ``dict``.
+-  :meth:`nightingale.writer.DataWriter.start_package_stream` requires the ``package_metadata`` argument to set ``"publishedDate"``.
+
+API naming
+^^^^^^^^^^
+
 -  Rename package to ``ocdsnightingale``.
 -  Rename command to ``ocdsnightingale``.
 -  Rename ``ocdsnightingale.utils`` module to :mod:`ocdsnightingale.util`.
 -  Rename ``ocdsnightingale.cli`` module to :mod:`ocdsnightingale.__main__`.
+-  Rename :class:`nightingale.mapper.OCDSDataMapper`'s milestone lookup attribute from ``release_lookup`` to ``milestone_lookup``.
+
+Dependencies
+^^^^^^^^^^^^
+
 -  Unpin dependencies.
 
 Removed
