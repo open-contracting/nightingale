@@ -7,7 +7,7 @@ Changelog
 Fixed
 ~~~~~
 
--  Restore release date assignment. :commit:`c1d585f`
+-  Restore release date assignment. :commit:`c1d585f` (`discussion <https://github.com/open-contracting/nightingale/pull/17#discussion_r2022988040>`__)
 -  The ``--version`` option no longer controls ``license`` and ``publicationPolicy``. :commit:`c6953ae`
 -  The ``force_publish`` configuration is no longer ignored. :commit:`c6953ae`
 -  Remove hardcoding of OCID prefix in logger messages.
