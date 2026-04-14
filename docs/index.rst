@@ -1,5 +1,5 @@
-OCDS Nightingale | release|
-===========================
+OCDS Nightingale |release|
+==========================
 
 .. include:: ../README.rst
 
